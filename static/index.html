@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Grievance Map</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <style>
+        #map { height: 100%; width: 100%; }
+        /* Ensure the map container takes full height */
+    </style>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden flex flex-col md:flex-row">
+
+    <!-- Left Side: Form -->
+    <div class="w-full md:w-1/3 p-6 bg-white shadow-lg z-10 overflow-y-auto h-full flex flex-col">
+        <h1 class="text-2xl font-bold mb-2 text-gray-800">Report an Issue</h1>
+        <p class="text-sm text-gray-600 mb-6 border-b pb-2">Provide details and set the location on the map.</p>
+        
+        <form id="grievanceForm" class="flex-grow flex flex-col space-y-4">
+            
+            <div>
+                <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Upload Image</label>
+                <input type="file" id="image" name="file" accept="image/*" required
+                    class="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100
+                    border border-gray-300 rounded-md p-1">
+            </div>
+
+            <div>
+                <label for="text" class="block text-sm font-medium text-gray-700 mb-1">Describe the Issue (Text or Voice)</label>
+                <textarea id="text" name="text" rows="3"
+                    class="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Describe the issue in Kannada, Hindi, English..."></textarea>
+                <div class="mt-2 flex items-center space-x-2">
+                    <button type="button" id="recordBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        <span>Record Audio</span>
+                    </button>
+                    <span id="recordingStatus" class="text-sm text-gray-600 hidden animate-pulse">Recording...</span>
+                    <audio id="audioPlayback" controls class="hidden h-8"></audio>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Issue Location</label>
+                <button type="button" id="getLocationBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 mb-2 flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>Get My Location</span>
+                </button>
+                
+                <input type="hidden" name="lat" id="lat" value="12.9716">
+                <input type="hidden" name="lng" id="lng" value="77.5946">
+                
+                <p class="text-xs text-gray-500 mt-1">Click on the map or use the button to set your location.</p>
+            </div>
+
+            <div class="mt-auto pt-4">
+                <button type="submit" id="submitBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex justify-center items-center">
+                    Submit Grievance
+                </button>
+            </div>
+            
+            <div id="statusMsg" class="hidden mt-2 text-sm text-center font-medium p-2 rounded"></div>
+        </form>
+
+        <!-- Result Details Section -->
+        <div id="resultDetails" class="hidden mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-inner text-sm text-gray-800">
+            <h2 class="text-lg font-bold mb-3 border-b pb-1 text-gray-700">AI Analysis Result</h2>
+            <div class="grid grid-cols-3 gap-2 mb-2">
+                <div class="font-semibold text-gray-600">Severity:</div>
+                <div id="resSeverity" class="col-span-2 font-bold"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-2">
+                <div class="font-semibold text-gray-600">Department:</div>
+                <div id="resDept" class="col-span-2"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-2">
+                <div class="font-semibold text-gray-600">Visual Issue:</div>
+                <div id="resVisual" class="col-span-2"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-2">
+                <div class="font-semibold text-gray-600">Translated:</div>
+                <div id="resTranslated" class="col-span-2 italic"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Map -->
+    <div class="w-full md:w-2/3 h-full relative z-0">
+        <div id="map"></div>
+    </div>
+
+    <script>
+        // Initialize Map (Centered on Bengaluru, India by default)
+        let currentLat = 12.9716;
+        let currentLng = 77.5946;
+        const defaultLat = 12.9716;
+        const defaultLng = 77.5946;
+        const map = L.map('map').setView([defaultLat, defaultLng], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let selectedLocationMarker = L.marker([defaultLat, defaultLng]).addTo(map)
+            .bindPopup("Selected Location for Grievance").openPopup();
+
+        const getLocationBtn = document.getElementById('getLocationBtn');
+        
+        getLocationBtn.addEventListener('click', () => {
+            const originalHtml = getLocationBtn.innerHTML;
+            getLocationBtn.innerHTML = '<svg class="animate-spin w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Locating...</span>';
+            getLocationBtn.disabled = true;
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    currentLat = position.coords.latitude;
+                    currentLng = position.coords.longitude;
+                    
+                    document.getElementById('lat').value = currentLat;
+                    document.getElementById('lng').value = currentLng;
+                    
+                    const newLatLng = new L.LatLng(currentLat, currentLng);
+                    selectedLocationMarker.setLatLng(newLatLng).openPopup();
+                    map.flyTo(newLatLng, 15);
+
+                    getLocationBtn.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Location Captured!</span>';
+                    getLocationBtn.classList.replace('bg-green-600', 'bg-blue-600');
+                    getLocationBtn.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+                    getLocationBtn.disabled = false;
+                }, error => {
+                    alert("Error detecting location: " + error.message);
+                    getLocationBtn.innerHTML = originalHtml;
+                    getLocationBtn.disabled = false;
+                });
+            } else {
+                alert("Geolocation is not supported by your browser");
+                getLocationBtn.innerHTML = originalHtml;
+                getLocationBtn.disabled = false;
+            }
+        });
+
+        map.on('click', function(e) {
+            currentLat = e.latlng.lat;
+            currentLng = e.latlng.lng;
+            
+            // Update hidden inputs
+            document.getElementById('lat').value = currentLat;
+            document.getElementById('lng').value = currentLng;
+            
+            // Update marker position
+            selectedLocationMarker.setLatLng(e.latlng).openPopup();
+            
+            // Reset button if location was previously captured
+            if (getLocationBtn.textContent.includes('Location Captured!')) {
+                getLocationBtn.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg><span>Get My Location</span>';
+                getLocationBtn.classList.replace('bg-blue-600', 'bg-green-600');
+                getLocationBtn.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+            }
+        });
+
+        // Map severity to colors
+        const severityColors = {
+            'Critical': '#ef4444', // Red
+            'High': '#f97316',     // Orange
+            'Medium': '#eab308',   // Yellow
+            'Low': '#3b82f6'       // Blue
+        };
+
+        const form = document.getElementById('grievanceForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        // Audio Recording Logic
+        const recordBtn = document.getElementById('recordBtn');
+        const recordingStatus = document.getElementById('recordingStatus');
+        const audioPlayback = document.getElementById('audioPlayback');
+        
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob = null;
+
+        recordBtn.addEventListener('click', async () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                recordBtn.innerHTML = '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg><span>Record Audio</span>';
+                recordBtn.classList.replace('bg-gray-500', 'bg-red-500');
+                recordBtn.classList.replace('hover:bg-gray-600', 'hover:bg-red-600');
+                recordingStatus.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioPlayback.src = audioUrl;
+                    audioPlayback.classList.remove('hidden');
+                    
+                    // Stop all audio tracks
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                recordBtn.innerHTML = '<svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 002 0V8a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v4a1 1 0 002 0V8a1 1 0 00-1-1z"></path></svg><span>Stop Recording</span>';
+                recordBtn.classList.replace('bg-red-500', 'bg-gray-500');
+                recordBtn.classList.replace('hover:bg-red-600', 'hover:bg-gray-600');
+                recordingStatus.classList.remove('hidden');
+                audioPlayback.classList.add('hidden');
+            } catch (err) {
+                alert("Error accessing microphone: " + err.message);
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI Feedback
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
+            statusMsg.classList.add('hidden');
+            statusMsg.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+
+            const formData = new FormData(form);
+            if (audioBlob) {
+                formData.append('audio', audioBlob, 'recording.webm');
+            }
+
+            try {
+                const response = await fetch('/submit-grievance', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errData = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errData}`);
+                }
+
+                const data = await response.json();
+                
+                // Add Marker to Map
+                const lat = data.coordinates.lat;
+                const lng = data.coordinates.lng;
+                const ai = data.ai_analysis;
+                
+                const markerColor = severityColors[ai.severity] || '#6b7280'; // Default gray if missing
+                
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 12,
+                    fillColor: markerColor,
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
+
+                // Construct popup content
+                const popupContent = `
+                    <div class="p-1">
+                        <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full mb-2" style="background-color: ${markerColor}33; color: ${markerColor}; border: 1px solid ${markerColor}">
+                            ${ai.severity} Severity
+                        </span>
+                        <h3 class="font-bold text-lg mb-1">${ai.department} Dept</h3>
+                        <p class="text-sm text-gray-700 mb-2 border-b pb-2"><strong>Issue:</strong> ${ai.visual_issue}</p>
+                        <p class="text-sm italic text-gray-600">"${ai.translated_text}"</p>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent).openPopup();
+                
+                // Populate Result Details Div
+                document.getElementById('resSeverity').textContent = ai.severity;
+                document.getElementById('resSeverity').style.color = markerColor;
+                document.getElementById('resDept').textContent = ai.department;
+                document.getElementById('resVisual').textContent = ai.visual_issue;
+                document.getElementById('resTranslated').textContent = `"${ai.translated_text}"`;
+                document.getElementById('resultDetails').classList.remove('hidden');
+                
+                // Pan map to new marker
+                map.flyTo([lat, lng], 15);
+
+                // Success Message
+                statusMsg.textContent = "Grievance submitted successfully!";
+                statusMsg.classList.add('bg-green-100', 'text-green-700');
+                statusMsg.classList.remove('hidden');
+                
+                form.reset();
+                // Reset Audio
+                audioBlob = null;
+                audioPlayback.src = "";
+                audioPlayback.classList.add('hidden');
+                
+                // Reset Location Captured state
+                getLocationBtn.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg><span>Get My Location</span>';
+                getLocationBtn.classList.replace('bg-blue-600', 'bg-green-600');
+                getLocationBtn.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+
+                // Restore hidden coordinate values after reset
+                currentLat = defaultLat;
+                currentLng = defaultLng;
+                document.getElementById('lat').value = defaultLat;
+                document.getElementById('lng').value = defaultLng;
+                selectedLocationMarker.setLatLng([defaultLat, defaultLng]);
+
+            } catch (error) {
+                console.error("Submission failed:", error);
+                statusMsg.textContent = "Failed to submit grievance: " + error.message;
+                statusMsg.classList.add('bg-red-100', 'text-red-700');
+                statusMsg.classList.remove('hidden');
+            } finally {
+                // Restore UI
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit Grievance';
+            }
+        });
+
+        async function loadGrievances() {
+            try {
+                const response = await fetch('/grievances');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch grievances: ${response.status}`);
+                }
+                const grievances = await response.json();
+                
+                grievances.forEach(g => {
+                    const markerColor = severityColors[g.severity] || '#6b7280';
+                    
+                    const marker = L.circleMarker([g.latitude, g.longitude], {
+                        radius: 12,
+                        fillColor: markerColor,
+                        color: '#ffffff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(map);
+
+                    const popupContent = `
+                        <div class="p-1">
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded-full mb-2" style="background-color: ${markerColor}33; color: ${markerColor}; border: 1px solid ${markerColor}">
+                                ${g.severity} Severity
+                            </span>
+                            <h3 class="font-bold text-lg mb-1">${g.department} Dept</h3>
+                            <p class="text-sm italic text-gray-600">"${g.translated_text}"</p>
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent);
+                });
+            } catch (error) {
+                console.error("Error loading grievances:", error);
+            }
+        }
+
+        window.addEventListener('load', loadGrievances);
+    </script>
+</body>
+</html>
