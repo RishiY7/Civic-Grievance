@@ -41,9 +41,9 @@ class Grievance(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     image_path = Column(String, nullable=True)
-    
-    # --- NEW COLUMNS FOR DUPLICATE DETECTION ---
-    is_duplicate = Column(Boolean, default=False)
+    visual_issue = Column(String, nullable=True)
+
+    # --- NEW COLUMNS FOR DUPLICATE DETECTION ---    is_duplicate = Column(Boolean, default=False)
     parent_id = Column(Integer, nullable=True)
 
 # --- SECURITY SETUP ---
@@ -128,7 +128,7 @@ if not gemini_keys:
 
 def call_gemini_with_fallback(parts, response_schema):
     """Loops through available Gemini keys and models until one succeeds."""
-    models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash']
+    models_to_try = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-3-flash-preview', 'gemini-1.5-flash']
     last_error = None
     for key in gemini_keys:
         for model_name in models_to_try:
@@ -181,6 +181,10 @@ async def submit_grievance(
     lng: float = Form(...)
 ):
     try:
+        # --- 0. SECURITY CHECK: FILE VALIDATION ---
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Invalid file format. Only images are allowed.")
+
         # --- 1. SAVE THE IMAGE ---
         unique_filename = f"{uuid.uuid4()}_{file.filename}"
         image_path = f"static/uploads/{unique_filename}"
@@ -288,6 +292,7 @@ async def submit_grievance(
             new_grievance = Grievance(
                 original_text=text,
                 translated_text=ai_analysis.get("translated_text"),
+                visual_issue=ai_analysis.get("visual_issue"),
                 department=ai_analysis.get("department"),
                 severity=ai_analysis.get("severity"),
                 latitude=lat,
@@ -353,11 +358,14 @@ async def get_grievances(current_admin: str = Depends(get_current_admin)):
                 "id": g.id,
                 "original_text": g.original_text,
                 "translated_text": g.translated_text,
+                "visual_issue": g.visual_issue,
                 "department": g.department,
                 "severity": g.severity,
                 "latitude": g.latitude,
                 "longitude": g.longitude,
-                "image_path": g.image_path
+                "image_path": g.image_path,
+                "is_duplicate": g.is_duplicate,
+                "parent_id": g.parent_id
             }
             for g in grievances
         ]
