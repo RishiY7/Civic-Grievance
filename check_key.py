@@ -21,7 +21,7 @@ else:
         clean_key = key.replace(chr(34), '').replace(chr(39), '').strip()
         client = genai.Client(api_key=clean_key)
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents='Hi'
         )
         print("API Call Successful!")

@@ -127,26 +127,28 @@ if not gemini_keys:
     print("Warning: GEMINI_API_KEYS environment variable is not set. API calls will fail.")
 
 def call_gemini_with_fallback(parts, response_schema):
-    """Loops through available Gemini keys until one succeeds."""
+    """Loops through available Gemini keys and models until one succeeds."""
+    models_to_try = ['gemini-2.5-flash', 'gemini-2.0-flash']
     last_error = None
     for key in gemini_keys:
-        try:
-            client = genai.Client(api_key=key)
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=parts,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    response_schema=response_schema,
+        for model_name in models_to_try:
+            try:
+                client = genai.Client(api_key=key)
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=parts,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        response_schema=response_schema,
+                    )
                 )
-            )
-            return response
-        except Exception as e:
-            print(f"Warning: Gemini API Key ending in ...{key[-4:]} failed. Error: {e}")
-            last_error = e
-            continue  # Try the next key
+                return response
+            except Exception as e:
+                print(f"Warning: Model {model_name} with API Key ending in ...{key[-4:]} failed. Error: {e}")
+                last_error = e
+                continue  # Try the next model/key
             
-    raise HTTPException(status_code=500, detail=f"All Gemini API keys failed. Last error: {last_error}")
+    raise HTTPException(status_code=500, detail=f"All Gemini API keys and models failed. Last error: {last_error}")
 
 def translate_with_sarvam(text: str) -> str:
     """Uses NVIDIA's Sarvam endpoint for native translation."""
@@ -260,8 +262,7 @@ async def submit_grievance(
             ai_analysis["translated_text"] = translated_text
         
         # --- 6. DUPLICATE DETECTION & SAVE TO DATABASE ---
-        db = SessionLocal()
-        try:
+        with SessionLocal() as db:
             is_duplicate = False
             parent_id = None
             
@@ -303,9 +304,6 @@ async def submit_grievance(
             ai_analysis["is_duplicate"] = is_duplicate
             if is_duplicate:
                 ai_analysis["duplicate_warning"] = f"Flagged as a duplicate of Ticket #{parent_id}."
-
-        finally:
-            db.close()
         
         return {
             "ai_analysis": ai_analysis,
@@ -324,8 +322,7 @@ async def submit_grievance(
 
 @app.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    db = SessionLocal()
-    try:
+    with SessionLocal() as db:
         # Check if the user exists
         admin = db.query(Admin).filter(Admin.username == form_data.username).first()
         
@@ -341,15 +338,12 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             
         access_token = create_access_token(data={"sub": admin.username}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
         return {"access_token": access_token, "token_type": "bearer"}
-    finally:
-        db.close()
 
 # --- PROTECT THIS ROUTE ---
 # Notice we added `current_admin: str = Depends(get_current_admin)`
 @app.get("/grievances")
 async def get_grievances(current_admin: str = Depends(get_current_admin)):
-    db = SessionLocal()
-    try:
+    with SessionLocal() as db:
         grievances = db.query(Grievance).all()
         return [
             {
@@ -364,5 +358,3 @@ async def get_grievances(current_admin: str = Depends(get_current_admin)):
             }
             for g in grievances
         ]
-    finally:
-        db.close()
