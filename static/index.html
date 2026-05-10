@@ -66,8 +66,16 @@
                     <span>Get My Location</span>
                 </button>
                 
-                <input type="hidden" name="lat" id="lat" value="12.9716">
-                <input type="hidden" name="lng" id="lng" value="77.5946">
+                <div class="flex space-x-2 mb-2">
+                    <div class="w-1/2">
+                        <label class="block text-xs text-gray-500 mb-1">Latitude</label>
+                        <input type="text" name="lat" id="lat" value="12.9716" readonly class="w-full px-2 py-1 text-sm bg-gray-50 border border-gray-200 rounded text-gray-600 focus:outline-none">
+                    </div>
+                    <div class="w-1/2">
+                        <label class="block text-xs text-gray-500 mb-1">Longitude</label>
+                        <input type="text" name="lng" id="lng" value="77.5946" readonly class="w-full px-2 py-1 text-sm bg-gray-50 border border-gray-200 rounded text-gray-600 focus:outline-none">
+                    </div>
+                </div>
                 
                 <p class="text-xs text-gray-500 mt-1">Click on the map or use the button to set your location.</p>
             </div>

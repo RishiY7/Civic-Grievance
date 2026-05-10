@@ -1,8 +1,11 @@
 import os
 import json
+import shutil
+import uuid
 from typing import Optional
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.staticfiles import StaticFiles
+from ultralytics import YOLO
 from fastapi.responses import FileResponse
 from google import genai
 from google.genai import types
@@ -31,6 +34,7 @@ class Grievance(Base):
     severity = Column(String, nullable=True)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
+    image_path = Column(String, nullable=True)
 
 class GrievanceAnalysis(BaseModel):
     translated_text: str = Field(description="The English translation/transcription of the user's description, or visual description if none provided")
@@ -42,8 +46,14 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Civic Grievance API")
 
-# Mount the static directory for the frontend
+# 1. Create a folder to permanently save uploaded images
+os.makedirs("static/uploads", exist_ok=True)
+
+# 2. Tell FastAPI to serve this folder so the frontend map can display the pictures
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# 3. Load your custom-trained YOLOv8 brain!
+yolo_model = YOLO("civic_model.pt")
 
 @app.get("/")
 async def read_index():
@@ -69,12 +79,47 @@ async def submit_grievance(
         raise HTTPException(status_code=500, detail="Server configuration error: Gemini API key is not set.")
         
     try:
-        # Read the image file bytes
-        contents = await file.read()
+        # --- 1. SAVE THE IMAGE ---
+        # Give the image a unique ID so files don't overwrite each other
+        unique_filename = f"{uuid.uuid4()}_{file.filename}"
+        image_path = f"static/uploads/{unique_filename}"
         
+        with open(image_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Read the image file bytes for Gemini after saving it
+        with open(image_path, "rb") as f:
+            contents = f.read()
+
+        # --- 2. RUN YOLOv8 INFERENCE ---
+        # Scan the saved image
+        yolo_results = yolo_model(image_path)
+        
+        # Extract what the AI found into a clean list
+        detected_issues = []
+        for result in yolo_results:
+            for box in result.boxes:
+                class_id = int(box.cls[0])
+                class_name = yolo_model.names[class_id]
+                detected_issues.append(class_name)
+                
+        # Remove duplicates (e.g., if it finds 3 potholes, just say "pothole")
+        unique_issues = list(set(detected_issues))
+        yolo_findings = ", ".join(unique_issues) if unique_issues else "No trained issues detected"
+
+        # --- 3. PREPARE THE DATABASE RECORD ---
+        # IMPORTANT: Make sure your SQLAlchemy model has this column: image_path = Column(String)
+        db_image_url = f"/static/uploads/{unique_filename}" 
+
         parts = []
         
-        prompt_intro = """
+        # --- 4. UPDATE GEMINI PROMPT ---
+        prompt_intro = f"""
+        The custom computer vision model scanned the image and detected: [{yolo_findings}].
+        
+        Using this visual confirmation, and the provided audio transcript, generate a structured 
+        summary of this civic grievance...
+        
         Analyze the provided image and the user's description of a civic grievance.
         The description might be provided as text or as an audio recording (which could be in English, Kannada, Hindi, or a mix of these languages).
         """
@@ -133,7 +178,8 @@ async def submit_grievance(
                 department=ai_analysis.get("department"),
                 severity=ai_analysis.get("severity"),
                 latitude=lat,
-                longitude=lng
+                longitude=lng,
+                image_path=db_image_url
             )
             db.add(new_grievance)
             db.commit()
@@ -170,9 +216,11 @@ async def get_grievances():
                 "department": g.department,
                 "severity": g.severity,
                 "latitude": g.latitude,
-                "longitude": g.longitude
+                "longitude": g.longitude,
+                "image_path": g.image_path
             }
             for g in grievances
         ]
     finally:
         db.close()
+)
