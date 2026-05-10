@@ -169,6 +169,9 @@ async def submit_grievance(
         # Parse the JSON response from Gemini
         ai_analysis = json.loads(response_text)
         
+        # Inject the image path so the frontend gets the picture instantly
+        ai_analysis["image_path"] = db_image_url
+        
         # Save the grievance to the database
         db = SessionLocal()
         try:
