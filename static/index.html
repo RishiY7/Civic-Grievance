@@ -17,6 +17,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         #map { height: 100%; width: 100%; }
@@ -37,7 +38,7 @@
         </div>
         <p class="text-sm text-gray-600 mb-6 border-b pb-2" data-i18n="subtitle">Provide details and set the location on the map.</p>
         
-        <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 shadow-sm">
+        <div id="adminFilters" class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 shadow-sm hidden">
             <h2 class="text-sm font-bold text-blue-800 mb-2 flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                 Dashboard Filters
@@ -198,6 +199,10 @@
         let allGrievances = [];
         let grievanceMarkers = L.layerGroup().addTo(map);
 
+        // Chart.js instances
+        let deptChartInstance = null;
+        let sevChartInstance = null;
+
         // Filter listeners
         document.getElementById('filterDept').addEventListener('change', applyFilters);
         document.getElementById('filterSeverity').addEventListener('change', applyFilters);
@@ -322,6 +327,7 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            document.getElementById('loadingOverlay').classList.remove('hidden');
             
             // UI Feedback
             submitBtn.disabled = true;
@@ -402,16 +408,63 @@
 
             } catch (error) {
                 console.error("Submission failed:", error);
-                statusMsg.textContent = "Failed to submit grievance: " + error.message;
-                statusMsg.classList.add('bg-red-100', 'text-red-700');
-                statusMsg.classList.remove('hidden');
+                showToast('Error submitting grievance. Please try again.', 'error');
             } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
                 // Restore UI
                 submitBtn.disabled = false;
                 const lang = document.getElementById('languageSwitcher').value || 'en';
                 submitBtn.innerHTML = `<span data-i18n="submitBtn">${uiTranslations[lang].submitBtn}</span>`;
             }
         });
+
+        function updateCharts(data) {
+            // 1. Tally the data
+            const deptCounts = { 'Roads': 0, 'Water': 0, 'Sanitation': 0, 'Electricity': 0 };
+            const sevCounts = { 'Critical': 0, 'High': 0, 'Medium': 0, 'Low': 0 };
+
+            data.forEach(g => {
+                if (g.department in deptCounts) deptCounts[g.department]++;
+                if (g.severity in sevCounts) sevCounts[g.severity]++;
+            });
+
+            // 2. Render Department Pie Chart
+            const ctxDept = document.getElementById('deptChart').getContext('2d');
+            if (deptChartInstance) deptChartInstance.destroy();
+            deptChartInstance = new Chart(ctxDept, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(deptCounts),
+                    datasets: [{
+                        data: Object.values(deptCounts),
+                        backgroundColor: ['#3b82f6', '#0ea5e9', '#6366f1', '#8b5cf6'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: {size: 10} } } } }
+            });
+
+            // 3. Render Severity Bar Chart
+            const ctxSev = document.getElementById('sevChart').getContext('2d');
+            if (sevChartInstance) sevChartInstance.destroy();
+            sevChartInstance = new Chart(ctxSev, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(sevCounts),
+                    datasets: [{
+                        data: Object.values(sevCounts),
+                        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e'],
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: {size: 10} } }, x: { ticks: { font: {size: 10} } } }
+                }
+            });
+        }
 
         function applyFilters() {
             grievanceMarkers.clearLayers(); // Clear map
@@ -443,20 +496,82 @@
                 marker.bindPopup(popupContent);
                 grievanceMarkers.addLayer(marker);
             });
+            
+            updateCharts(filtered);
         }
 
         async function loadGrievances() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) return; // Do not fetch if not logged in
+
             try {
-                const response = await fetch('/grievances');
-                if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+                const response = await fetch('/grievances', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.status === 401) {
+                    alert("Session expired. Please log in again.");
+                    logout();
+                    return;
+                }
+                
                 allGrievances = await response.json();
-                applyFilters(); // Plot them
+                document.getElementById('adminFilters').classList.remove('hidden');
+                document.getElementById('analyticsPanel').classList.remove('hidden');
+                document.getElementById('loginBtn').classList.add('hidden');
+                document.getElementById('logoutBtn').classList.remove('hidden');
+                applyFilters(); 
             } catch (error) {
                 console.error("Error loading grievances:", error);
             }
         }
 
-        window.addEventListener('load', loadGrievances);
+        // --- AUTHENTICATION LOGIC ---
+        document.getElementById('loginBtn').addEventListener('click', () => document.getElementById('loginModal').classList.remove('hidden'));
+        document.getElementById('closeLoginBtn').addEventListener('click', () => document.getElementById('loginModal').classList.add('hidden'));
+        
+        document.getElementById('submitLoginBtn').addEventListener('click', async () => {
+            const formData = new URLSearchParams();
+            formData.append('username', document.getElementById('adminUser').value);
+            formData.append('password', document.getElementById('adminPass').value);
+
+            const res = await fetch('/token', { method: 'POST', body: formData });
+            if (res.ok) {
+                const data = await res.json();
+                localStorage.setItem('adminToken', data.access_token);
+                document.getElementById('loginModal').classList.add('hidden');
+                loadGrievances(); // Fetch pins now that we have the token
+            } else {
+                showToast("Invalid credentials", "error");
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            allGrievances = [];
+            grievanceMarkers.clearLayers();
+            document.getElementById('adminFilters').classList.add('hidden');
+            document.getElementById('analyticsPanel').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
+            document.getElementById('loginBtn').classList.remove('hidden');
+        }
+
+        // Check login status on page load
+        if (localStorage.getItem('adminToken')) {
+            loadGrievances();
+        }
     </script>
+<div id="loadingOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-80 hidden flex-col justify-center items-center z-[3000] text-white backdrop-blur-sm transition-opacity">
+    <svg class="animate-spin h-14 w-14 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    <h2 class="text-2xl font-bold animate-pulse">Processing Civic Grievance...</h2>
+    <p class="text-sm mt-2 text-gray-300">Running AI Vision & Language Translation</p>
+</div>
+
+<div id="toastContainer" class="fixed bottom-5 right-5 z-[4000] flex flex-col gap-2 pointer-events-none"></div>
 </body>
 </html>
