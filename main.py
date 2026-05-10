@@ -326,12 +326,15 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         # Check if the user exists
         admin = db.query(Admin).filter(Admin.username == form_data.username).first()
         
-        # FOR DEVELOPMENT: Auto-create default admin (admin / admin123) if the table is empty
-        if not admin and form_data.username == "admin" and form_data.password == "admin123":
-            new_admin = Admin(username="admin", hashed_password=get_password_hash("admin123"))
-            db.add(new_admin)
-            db.commit()
-            admin = new_admin
+        default_admin_user = os.getenv("DEFAULT_ADMIN_USER")
+        default_admin_pass = os.getenv("DEFAULT_ADMIN_PASS")
+        
+        if not admin and default_admin_user and default_admin_pass:
+            if form_data.username == default_admin_user and form_data.password == default_admin_pass:
+                new_admin = Admin(username=default_admin_user, hashed_password=get_password_hash(default_admin_pass))
+                db.add(new_admin)
+                db.commit()
+                admin = new_admin
             
         if not admin or not verify_password(form_data.password, admin.hashed_password):
             raise HTTPException(status_code=401, detail="Incorrect username or password")
