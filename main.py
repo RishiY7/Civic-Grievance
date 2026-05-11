@@ -18,8 +18,8 @@ from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean, ForeignKey
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
 # Load environment variables
 load_dotenv(override=True)
@@ -34,6 +34,7 @@ Base = declarative_base()
 class Grievance(Base):
     __tablename__ = "grievances"
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     original_text = Column(String, nullable=True)
     translated_text = Column(String, nullable=True)
     department = Column(String, nullable=True)
@@ -42,8 +43,11 @@ class Grievance(Base):
     longitude = Column(Float, nullable=True)
     image_path = Column(String, nullable=True)
     visual_issue = Column(String, nullable=True)
+    image_description = Column(String, nullable=True)
+    email = Column(String, nullable=True)
 
-    # --- NEW COLUMNS FOR DUPLICATE DETECTION ---    is_duplicate = Column(Boolean, default=False)
+    # --- NEW COLUMNS FOR DUPLICATE DETECTION ---
+    is_duplicate = Column(Boolean, default=False)
     parent_id = Column(Integer, nullable=True)
 
 # --- SECURITY SETUP ---
@@ -60,9 +64,31 @@ class Admin(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
 
+class DepartmentAdmin(Base):
+    __tablename__ = "department_admins"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    department_name = Column(String) # 'Roads', 'Water', 'Sanitation', 'Electricity'
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    
+    grievances = relationship("Grievance", back_populates="user")
+
+Grievance.user = relationship("User", back_populates="grievances")
+
+class UserSignup(BaseModel):
+    username: str
+    password: str
+
 class GrievanceAnalysis(BaseModel):
     translated_text: str = Field(description="The English translation/transcription of the user's description, or visual description if none provided")
     visual_issue: str = Field(description="What you see in the image (e.g., 'pothole', 'broken pipe')")
+    image_description: str = Field(description="A detailed description of what you see in the image")
     severity: str = Field(description="'Low', 'Medium', 'High', or 'Critical'")
     department: str = Field(description="'Roads', 'Water', 'Sanitation', or 'Electricity'")
 
@@ -94,15 +120,28 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def get_current_admin(token: str = Depends(oauth2_scheme)):
+def get_current_user_token(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
-        if username is None:
+        role: str = payload.get("role")
+        department: str = payload.get("department")
+        if username is None or role is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        return username
+        return {"username": username, "role": role, "department": department}
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+
+def get_optional_user_token(token: str = Depends(OAuth2PasswordBearer(tokenUrl="token", auto_error=False))):
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        role: str = payload.get("role")
+        return {"username": username, "role": role}
+    except jwt.PyJWTError:
+        return None
 
 app = FastAPI(title="Civic Grievance API")
 
@@ -163,7 +202,10 @@ def translate_with_sarvam(text: str) -> str:
             max_tokens=16384,
             stream=False
         )
-        return completion.choices[0].message.content.strip()
+        content = completion.choices[0].message.content.strip()
+        if "</think>" in content:
+            content = content.split("</think>")[-1].strip()
+        return content
     except Exception as e:
         print(f"Sarvam translation failed, falling back to original text. Error: {e}")
         return text
@@ -175,10 +217,12 @@ async def read_index():
 @app.post("/submit-grievance")
 async def submit_grievance(
     file: UploadFile = File(...),
+    email: str = Form(...),
     text: str = Form(default=""),
     audio: Optional[UploadFile] = File(default=None),
     lat: float = Form(...),
-    lng: float = Form(...)
+    lng: float = Form(...),
+    current_user: dict = Depends(get_current_user_token)
 ):
     try:
         # --- 0. SECURITY CHECK: FILE VALIDATION ---
@@ -240,9 +284,14 @@ async def submit_grievance(
         prompt_tasks = """
         Perform the following tasks:
         1. Review the pre-translated text (if provided) and image. If audio is provided, translate it to English.
-        2. Identify the core civic issue visually and contextually.
+        2. Identify the core civic issue visually and contextually. The YOLO model specifically detects: garbage, pothole, streetlight, water leak, water log, wires. Ensure your analysis correlates with these if present.
         3. Assign a severity to the issue (Low, Medium, High, Critical).
-        4. Route the issue to the appropriate department (Choose one: Roads, Water, Sanitation, Electricity).
+        4. Route the issue to the appropriate department. Mapping guide:
+           - Garbage/Sanitation -> Sanitation
+           - Pothole/Road damage -> Roads
+           - Streetlight/Wires -> Electricity
+           - Water leak/Water log -> Water or Sanitation
+           Choose EXACTLY one: Roads, Water, Sanitation, Electricity.
         """
         
         prompt = prompt_intro + "\n" + prompt_tasks
@@ -264,6 +313,9 @@ async def submit_grievance(
         # Override the Gemini translated text with the Sarvam text if Sarvam processed it successfully
         if translated_text and text:
             ai_analysis["translated_text"] = translated_text
+
+        if ai_analysis.get("translated_text") and "</think>" in ai_analysis["translated_text"]:
+            ai_analysis["translated_text"] = ai_analysis["translated_text"].split("</think>")[-1].strip()
         
         # --- 6. DUPLICATE DETECTION & SAVE TO DATABASE ---
         with SessionLocal() as db:
@@ -288,11 +340,21 @@ async def submit_grievance(
                         parent_id = ticket.id
                         break # Stop searching, we found the parent
             
+            # Get user id if logged in
+            db_user_id = None
+            if current_user and current_user.get("role") == "user":
+                u = db.query(User).filter(User.username == current_user.get("username")).first()
+                if u:
+                    db_user_id = u.id
+
             # Step C: Save the new grievance with its duplicate status
             new_grievance = Grievance(
+                user_id=db_user_id,
+                email=email,
                 original_text=text,
                 translated_text=ai_analysis.get("translated_text"),
                 visual_issue=ai_analysis.get("visual_issue"),
+                image_description=ai_analysis.get("image_description"),
                 department=ai_analysis.get("department"),
                 severity=ai_analysis.get("severity"),
                 latitude=lat,
@@ -325,40 +387,77 @@ async def submit_grievance(
         print(f"Error processing grievance: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+def init_default_accounts(db):
+    # Initialize Super Admin
+    default_admin_user = os.getenv("DEFAULT_ADMIN_USER")
+    default_admin_pass = os.getenv("DEFAULT_ADMIN_PASS")
+    if default_admin_user and default_admin_pass:
+        if not db.query(Admin).filter(Admin.username == default_admin_user).first():
+            db.add(Admin(username=default_admin_user, hashed_password=get_password_hash(default_admin_pass)))
+    
+    # Initialize Department Admins
+    departments = ["Roads", "Water", "Sanitation", "Electricity"]
+    for dept in departments:
+        env_user = os.getenv(f"DEPT_{dept.upper()}_USER")
+        env_pass = os.getenv(f"DEPT_{dept.upper()}_PASS")
+        if env_user and env_pass:
+            if not db.query(DepartmentAdmin).filter(DepartmentAdmin.username == env_user).first():
+                db.add(DepartmentAdmin(username=env_user, hashed_password=get_password_hash(env_pass), department_name=dept))
+    db.commit()
+
+@app.post("/signup")
+async def signup_user(user_data: UserSignup):
+    with SessionLocal() as db:
+        if db.query(User).filter(User.username == user_data.username).first():
+            raise HTTPException(status_code=400, detail="Username already registered")
+        new_user = User(username=user_data.username, hashed_password=get_password_hash(user_data.password))
+        db.add(new_user)
+        db.commit()
+        return {"message": "User created successfully"}
+
 @app.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     with SessionLocal() as db:
-        # Check if the user exists
+        init_default_accounts(db)
+        
+        # Check Super Admin
         admin = db.query(Admin).filter(Admin.username == form_data.username).first()
-        
-        default_admin_user = os.getenv("DEFAULT_ADMIN_USER")
-        default_admin_pass = os.getenv("DEFAULT_ADMIN_PASS")
-        
-        if not admin and default_admin_user and default_admin_pass:
-            if form_data.username == default_admin_user and form_data.password == default_admin_pass:
-                new_admin = Admin(username=default_admin_user, hashed_password=get_password_hash(default_admin_pass))
-                db.add(new_admin)
-                db.commit()
-                admin = new_admin
+        if admin and verify_password(form_data.password, admin.hashed_password):
+            access_token = create_access_token(data={"sub": admin.username, "role": "admin"})
+            return {"access_token": access_token, "token_type": "bearer", "role": "admin"}
             
-        if not admin or not verify_password(form_data.password, admin.hashed_password):
-            raise HTTPException(status_code=401, detail="Incorrect username or password")
+        # Check Department Admin
+        dept_admin = db.query(DepartmentAdmin).filter(DepartmentAdmin.username == form_data.username).first()
+        if dept_admin and verify_password(form_data.password, dept_admin.hashed_password):
+            access_token = create_access_token(data={"sub": dept_admin.username, "role": "department", "department": dept_admin.department_name})
+            return {"access_token": access_token, "token_type": "bearer", "role": "department", "department": dept_admin.department_name}
             
-        access_token = create_access_token(data={"sub": admin.username}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-        return {"access_token": access_token, "token_type": "bearer"}
+        # Check Citizen/User
+        user = db.query(User).filter(User.username == form_data.username).first()
+        if user and verify_password(form_data.password, user.hashed_password):
+            access_token = create_access_token(data={"sub": user.username, "role": "user"})
+            return {"access_token": access_token, "token_type": "bearer", "role": "user"}
 
-# --- PROTECT THIS ROUTE ---
-# Notice we added `current_admin: str = Depends(get_current_admin)`
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+
+# --- PUBLIC / PROTECTED ROUTE ---
 @app.get("/grievances")
-async def get_grievances(current_admin: str = Depends(get_current_admin)):
+async def get_grievances(current_user: Optional[dict] = Depends(get_optional_user_token)):
     with SessionLocal() as db:
-        grievances = db.query(Grievance).all()
+        if current_user and current_user.get("role") == "department":
+            dept_name = current_user.get("department")
+            grievances = db.query(Grievance).filter(Grievance.department == dept_name).all()
+        else:
+            # Admins, Citizens, and Anonymous users see all public map points
+            grievances = db.query(Grievance).all()
+            
         return [
             {
                 "id": g.id,
                 "original_text": g.original_text,
                 "translated_text": g.translated_text,
                 "visual_issue": g.visual_issue,
+                "image_description": g.image_description,
                 "department": g.department,
                 "severity": g.severity,
                 "latitude": g.latitude,

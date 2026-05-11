@@ -82,6 +82,13 @@
             </div>
         </div>
 
+        <div id="loginPrompt" class="hidden flex-grow flex flex-col items-center justify-center text-center p-6 bg-blue-50 border border-blue-200 rounded-lg shadow-inner mb-6">
+            <svg class="w-12 h-12 text-blue-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+            <h2 class="text-lg font-bold text-blue-800 mb-2">Login Required</h2>
+            <p class="text-sm text-blue-600 mb-4">You must be logged in to report a civic grievance.</p>
+            <button onclick="document.getElementById('loginModal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-200 shadow">Log In / Sign Up</button>
+        </div>
+
         <form id="grievanceForm" class="flex-grow flex flex-col space-y-4">
             
             <div>
@@ -158,14 +165,22 @@
                 <div id="resVisual" class="col-span-2"></div>
             </div>
             <div class="grid grid-cols-3 gap-2 mb-2">
+                <div class="font-semibold text-gray-600">Original:</div>
+                <div id="resOriginal" class="col-span-2 text-gray-800"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-2">
                 <div class="font-semibold text-gray-600">Translated:</div>
                 <div id="resTranslated" class="col-span-2 italic"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-2">
+                <div class="font-semibold text-gray-600">Image Details:</div>
+                <div id="resImageDesc" class="col-span-2 text-xs text-gray-500"></div>
             </div>
         </div>
     </div>
 
     <!-- Right Side: Map -->
-    <div class="w-full md:w-2/3 h-full relative z-0">
+    <div class="w-full md:w-3/4 flex-1 h-[50vh] md:h-full relative z-0">
         <div id="map"></div>
     </div>
 
@@ -203,6 +218,7 @@
             'kn': {
                 title: "ಸಮಸ್ಯೆಯನ್ನು ವರದಿ ಮಾಡಿ (Report an Issue)",
                 subtitle: "ವಿವರಗಳನ್ನು ಒದಗಿಸಿ ಮತ್ತು ನಕ್ಷೆಯಲ್ಲಿ ಸ್ಥಳವನ್ನು ಹೊಂದಿಸಿ. (Provide details and set the location on the map.)",
+                emailLabel: "ಇಮೇಲ್ ವಿಳಾಸ (Email Address)",
                 uploadLabel: "ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ (Upload Image)",
                 descLabel: "ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ (ಪಠ್ಯ ಅಥವಾ ಧ್ವನಿ) (Describe the Issue (Text or Voice))",
                 submitBtn: "ದೂರು ಸಲ್ಲಿಸಿ (Submit Grievance)",
@@ -400,9 +416,15 @@
             }
 
             try {
+                const token = localStorage.getItem('adminToken');
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
                 const response = await fetch('/submit-grievance', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: headers
                 });
 
                 if (!response.ok) {
@@ -556,11 +578,13 @@
                     </span>` : ''}
 
                     <h3 class="font-bold text-lg mb-1">${g.department} Dept</h3>
-                    <p class="text-sm font-semibold text-gray-700">Issue: ${g.visual_issue || 'Unknown'}</p>
-                    <p class="text-sm italic text-gray-600">"${g.translated_text}"</p>
+                    <p class="text-sm font-semibold text-gray-700 mb-1">Issue: ${g.visual_issue || 'Unknown'}</p>
+                    <p class="text-xs text-gray-800 mb-1"><strong>Original:</strong> "${g.original_text || 'No text provided'}"</p>
+                    <p class="text-xs italic text-gray-600 mb-1"><strong>Translation:</strong> "${g.translated_text}"</p>
+                    ${g.image_description ? `<p class="text-xs text-gray-500 mt-2 border-t pt-1">${g.image_description}</p>` : ''}
                     <div class="mt-3 border-t pt-2">
-                        <a href="https://maps.google.com/?q=${g.latitude},${g.longitude}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded shadow transition-colors">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <a href="https://maps.google.com/?q=${g.latitude},${g.longitude}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-full bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 text-xs font-bold py-2 px-3 rounded shadow-sm transition-colors">
+                            <svg class="w-4 h-4 mr-1 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             Navigate in Google Maps
                         </a>
                     </div>
@@ -574,11 +598,14 @@
 
         async function loadGrievances() {
             const token = localStorage.getItem('adminToken');
-            if (!token) return; // Do not fetch if not logged in
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
 
             try {
                 const response = await fetch('/grievances', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: headers
                 });
                 
                 if (response.status === 401) {
@@ -588,10 +615,7 @@
                 }
                 
                 allGrievances = await response.json();
-                document.getElementById('adminFilters').classList.remove('hidden');
-                document.getElementById('analyticsPanel').classList.remove('hidden');
-                document.getElementById('loginBtn').classList.add('hidden');
-                document.getElementById('logoutBtn').classList.remove('hidden');
+                applyRoleUI();
                 applyFilters(); 
             } catch (error) {
                 console.error("Error loading grievances:", error);
@@ -599,41 +623,130 @@
         }
 
         // --- AUTHENTICATION LOGIC ---
-        document.getElementById('loginBtn').addEventListener('click', () => document.getElementById('loginModal').classList.remove('hidden'));
-        document.getElementById('closeLoginBtn').addEventListener('click', () => document.getElementById('loginModal').classList.add('hidden'));
-        
-        document.getElementById('submitLoginBtn').addEventListener('click', async () => {
-            const formData = new URLSearchParams();
-            formData.append('username', document.getElementById('adminUser').value);
-            formData.append('password', document.getElementById('adminPass').value);
+        let userRole = localStorage.getItem('userRole') || null;
+        let userDept = localStorage.getItem('userDept') || null;
 
-            const res = await fetch('/token', { method: 'POST', body: formData });
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem('adminToken', data.access_token);
-                document.getElementById('loginModal').classList.add('hidden');
-                loadGrievances(); // Fetch pins now that we have the token
-            } else {
-                showToast("Invalid credentials", "error");
-            }
-        });
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loginBtn').addEventListener('click', () => document.getElementById('loginModal').classList.remove('hidden'));
+            document.getElementById('closeLoginBtn').addEventListener('click', () => { document.getElementById('loginModal').classList.add('hidden'); document.getElementById('loginError').classList.add('hidden'); });
 
-        document.getElementById('logoutBtn').addEventListener('click', logout);
+            document.getElementById('tabLogin').addEventListener('click', () => {
+                document.getElementById('tabLogin').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                document.getElementById('tabLogin').classList.remove('text-gray-500');
+                document.getElementById('tabSignup').classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                document.getElementById('tabSignup').classList.add('text-gray-500');
+                document.getElementById('modalTitle').innerText = 'Login';
+                document.getElementById('loginError').classList.add('hidden');
+                document.getElementById('submitLoginBtn').classList.remove('hidden');
+                document.getElementById('submitSignupBtn').classList.add('hidden');
+            });
+            document.getElementById('tabSignup').addEventListener('click', () => {
+                document.getElementById('tabSignup').classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
+                document.getElementById('tabSignup').classList.remove('text-gray-500');
+                document.getElementById('tabLogin').classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                document.getElementById('tabLogin').classList.add('text-gray-500');
+                document.getElementById('modalTitle').innerText = 'Sign Up (Citizen)';
+                document.getElementById('loginError').classList.add('hidden');
+                document.getElementById('submitSignupBtn').classList.remove('hidden');
+                document.getElementById('submitLoginBtn').classList.add('hidden');
+            });
+
+            document.getElementById('submitSignupBtn').addEventListener('click', async () => {
+                const res = await fetch('/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('adminUser').value,
+                        password: document.getElementById('adminPass').value
+                    })
+                });
+                if (res.ok) {
+                    showToast("Signup successful. You can now log in.", "success");
+                    document.getElementById('tabLogin').click();
+                } else {
+                    document.getElementById("loginError").innerText = "Signup failed. Username may already exist.";
+                    document.getElementById("loginError").classList.remove("hidden");
+                }
+            });
+
+            document.getElementById('submitLoginBtn').addEventListener('click', async () => {
+                const formData = new URLSearchParams();
+                formData.append('username', document.getElementById('adminUser').value);
+                formData.append('password', document.getElementById('adminPass').value);
+
+                const res = await fetch('/token', { method: 'POST', body: formData });
+                if (res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('adminToken', data.access_token);
+                    localStorage.setItem('userRole', data.role);
+                    if (data.department) localStorage.setItem('userDept', data.department);
+                    
+                    userRole = data.role;
+                    userDept = data.department;
+                    
+                    document.getElementById('loginModal').classList.add('hidden');
+                    
+                    applyRoleUI();
+                    loadGrievances();
+                    showToast(`Logged in successfully`, "success");
+                } else {
+                    document.getElementById("loginError").innerText = "Incorrect username or password";
+                    document.getElementById("loginError").classList.remove("hidden");
+                }
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        }); // End DOMContentLoaded
 
         function logout() {
             localStorage.removeItem('adminToken');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userDept');
+            userRole = null;
+            userDept = null;
+            
             allGrievances = [];
             grievanceMarkers.clearLayers();
-            document.getElementById('adminFilters').classList.add('hidden');
-            document.getElementById('analyticsPanel').classList.add('hidden');
-            document.getElementById('logoutBtn').classList.add('hidden');
-            document.getElementById('loginBtn').classList.remove('hidden');
+            applyRoleUI();
+            
+            showToast("Logged out successfully", "success");
         }
 
-        // Check login status on page load
-        if (localStorage.getItem('adminToken')) {
-            loadGrievances();
+        function applyRoleUI() {
+            if (!userRole) {
+                document.getElementById('adminFilters').classList.add('hidden');
+                document.getElementById('analyticsPanel').classList.add('hidden');
+                document.getElementById('logoutBtn').classList.add('hidden');
+                document.getElementById('loginBtn').classList.remove('hidden');
+                document.getElementById('grievanceForm').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('loginBtn').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+
+            if (userRole === 'admin') {
+                document.getElementById('adminFilters').classList.remove('hidden');
+                document.getElementById('analyticsPanel').classList.remove('hidden');
+                document.getElementById('grievanceForm').classList.add('hidden');
+                document.getElementById('filterDept').disabled = false;
+                document.getElementById('filterDept').value = "All";
+            } else if (userRole === 'department') {
+                document.getElementById('adminFilters').classList.remove('hidden');
+                document.getElementById('analyticsPanel').classList.remove('hidden');
+                document.getElementById('grievanceForm').classList.add('hidden');
+                document.getElementById('filterDept').value = userDept;
+                document.getElementById('filterDept').disabled = true;
+            } else if (userRole === 'user') {
+                document.getElementById('adminFilters').classList.add('hidden');
+                document.getElementById('analyticsPanel').classList.add('hidden');
+                document.getElementById('grievanceForm').classList.remove('hidden');
+            }
         }
+
+        // Check login status and load map points on page load
+        applyRoleUI();
+        loadGrievances();
     </script>
 
 <!-- Login Modal -->
@@ -642,7 +755,12 @@
         <button id="closeLoginBtn" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
-        <h2 class="text-xl font-bold mb-4 text-gray-800">Admin Login</h2>
+        <div class="flex mb-4 border-b">
+            <button id="tabLogin" class="w-1/2 py-2 text-center font-bold text-blue-600 border-b-2 border-blue-600">Login</button>
+            <button id="tabSignup" class="w-1/2 py-2 text-center font-bold text-gray-500">Sign Up</button>
+        </div>
+        <h2 id="modalTitle" class="text-xl font-bold mb-2 text-gray-800">Login</h2>
+        <div id="loginError" class="hidden text-red-500 text-sm mb-3 font-medium"></div>
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
             <input type="text" id="adminUser" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-gray-800">
@@ -652,16 +770,8 @@
             <input type="password" id="adminPass" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-gray-800">
         </div>
         <button id="submitLoginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">Login</button>
+        <button id="submitSignupBtn" class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors">Sign Up</button>
     </div>
-</div>
-
-<div id="loadingOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-80 hidden flex-col justify-center items-center z-[3000] text-white backdrop-blur-sm transition-opacity">
-    <svg class="animate-spin h-14 w-14 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-    <h2 class="text-2xl font-bold animate-pulse">Processing Civic Grievance...</h2>
-    <p class="text-sm mt-2 text-gray-300">Running AI Vision & Language Translation</p>
 </div>
 
 <div id="toastContainer" class="fixed bottom-5 right-5 z-[4000] flex flex-col gap-2 pointer-events-none"></div>
