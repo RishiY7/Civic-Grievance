@@ -43,10 +43,13 @@ class Grievance(Base):
     longitude = Column(Float, nullable=True)
     image_path = Column(String, nullable=True)
     visual_issue = Column(String, nullable=True)
-    image_description = Column(String, nullable=True)
-    email = Column(String, nullable=True)
-
-    # --- NEW COLUMNS FOR DUPLICATE DETECTION ---
+    
+    # Module additions
+    image_description = Column(String, nullable=True) 
+    citizen_email = Column(String, nullable=True) 
+    status = Column(String, default="Open")
+    
+    # Duplicate Detection
     is_duplicate = Column(Boolean, default=False)
     parent_id = Column(Integer, nullable=True)
 
@@ -217,12 +220,12 @@ async def read_index():
 @app.post("/submit-grievance")
 async def submit_grievance(
     file: UploadFile = File(...),
-    email: str = Form(...),
     text: str = Form(default=""),
+    email: Optional[str] = Form(default=None),
     audio: Optional[UploadFile] = File(default=None),
     lat: float = Form(...),
     lng: float = Form(...),
-    current_user: dict = Depends(get_current_user_token)
+    current_user: Optional[dict] = Depends(get_optional_user_token)
 ):
     try:
         # --- 0. SECURITY CHECK: FILE VALIDATION ---
@@ -318,7 +321,8 @@ async def submit_grievance(
             ai_analysis["translated_text"] = ai_analysis["translated_text"].split("</think>")[-1].strip()
         
         # --- 6. DUPLICATE DETECTION & SAVE TO DATABASE ---
-        with SessionLocal() as db:
+        db = SessionLocal()
+        try:
             is_duplicate = False
             parent_id = None
             
@@ -338,8 +342,9 @@ async def submit_grievance(
                         print(f"DUPLICATE DETECTED! Only {distance:.1f} meters from Ticket #{ticket.id}")
                         is_duplicate = True
                         parent_id = ticket.id
-                        break # Stop searching, we found the parent
+                        break 
             
+            # Step C: Save the new grievance
             # Get user id if logged in
             db_user_id = None
             if current_user and current_user.get("role") == "user":
@@ -347,10 +352,8 @@ async def submit_grievance(
                 if u:
                     db_user_id = u.id
 
-            # Step C: Save the new grievance with its duplicate status
             new_grievance = Grievance(
                 user_id=db_user_id,
-                email=email,
                 original_text=text,
                 translated_text=ai_analysis.get("translated_text"),
                 visual_issue=ai_analysis.get("visual_issue"),
@@ -360,6 +363,7 @@ async def submit_grievance(
                 latitude=lat,
                 longitude=lng,
                 image_path=db_image_url,
+                citizen_email=email,
                 is_duplicate=is_duplicate,
                 parent_id=parent_id
             )
@@ -367,10 +371,12 @@ async def submit_grievance(
             db.commit()
             db.refresh(new_grievance)
             
-            # Attach the duplicate status to the JSON response so the frontend knows
             ai_analysis["is_duplicate"] = is_duplicate
             if is_duplicate:
                 ai_analysis["duplicate_warning"] = f"Flagged as a duplicate of Ticket #{parent_id}."
+
+        finally:
+            db.close()
         
         return {
             "ai_analysis": ai_analysis,
