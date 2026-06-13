@@ -1,0 +1,128 @@
+import React, { useState } from 'react';
+import { X, UserCircle, ShieldCheck } from 'lucide-react';
+
+interface AuthModalProps {
+  onClose: () => void;
+  onLoginSuccess: (token: string, role: string, dept: string | null) => void;
+}
+
+export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
+  const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (isLogin) {
+      try {
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        // Fetching from python backend
+        const res = await fetch('http://localhost:8000/token', { method: 'POST', body: formData });
+        if (res.ok) {
+          const data = await res.json();
+          onLoginSuccess(data.access_token, data.role, data.department);
+        } else {
+          setError('Incorrect username or password');
+        }
+      } catch (err) {
+        setError('Connection error. Is the server running?');
+      }
+    } else {
+      try {
+        const res = await fetch('http://localhost:8000/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        if (res.ok) {
+          alert('Signup successful! Please log in.');
+          setIsLogin(true);
+        } else {
+          setError('Signup failed. Username may already exist.');
+        }
+      } catch (err) {
+        setError('Connection error.');
+      }
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+      <div className="glass-panel w-full max-w-md rounded-[2rem] p-8 relative overflow-hidden shadow-2xl">
+        <button 
+          onClick={onClose}
+          className="absolute top-6 right-6 text-on-surface-variant hover:text-error transition-colors"
+        >
+          <X size={24} />
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="mx-auto w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
+            {isLogin ? <ShieldCheck size={32} /> : <UserCircle size={32} />}
+          </div>
+          <h2 className="text-2xl font-bold text-on-surface">
+            {isLogin ? 'Welcome Back' : 'Create Account'}
+          </h2>
+          <p className="text-on-surface-variant text-sm mt-1">
+            {isLogin ? 'Login to access the dashboard' : 'Join Civic Grievance to report issues'}
+          </p>
+        </div>
+
+        <div className="flex border-b border-outline-variant/30 mb-6">
+          <button
+            className={`flex-1 py-2 font-bold text-sm transition-colors ${isLogin ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant'}`}
+            onClick={() => { setIsLogin(true); setError(''); }}
+          >
+            Login
+          </button>
+          <button
+            className={`flex-1 py-2 font-bold text-sm transition-colors ${!isLogin ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant'}`}
+            onClick={() => { setIsLogin(false); setError(''); }}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-on-surface mb-1">Username</label>
+            <input 
+              type="text" 
+              required
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              className="w-full px-4 py-3 bg-surface-container-highest border border-outline-variant/30 rounded-xl focus:outline-none focus:border-primary text-on-surface"
+              placeholder="Enter username"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-on-surface mb-1">Password</label>
+            <input 
+              type="password" 
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-surface-container-highest border border-outline-variant/30 rounded-xl focus:outline-none focus:border-primary text-on-surface"
+              placeholder="••••••••"
+            />
+          </div>
+
+          {error && <div className="text-error text-sm font-bold text-center bg-error/10 py-2 rounded-lg">{error}</div>}
+
+          <button 
+            type="submit"
+            className="w-full bg-gradient-to-r from-primary to-secondary text-white font-bold py-3 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all mt-4"
+          >
+            {isLogin ? 'Login' : 'Sign Up'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
