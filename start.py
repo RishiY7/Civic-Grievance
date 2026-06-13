@@ -55,23 +55,35 @@ def main():
 
     except KeyboardInterrupt:
         print("\nInterrupt received. Shutting down servers...")
-        if backend_process:
-            backend_process.terminate()
-        if frontend_process:
-            frontend_process.terminate()
+        
+        # Cross-platform way to terminate the subprocess tree
+        if os.name == 'nt':
+            # On Windows, terminating the npm process doesn't always kill the node/vite child processes.
+            # taskkill with /T (tree) and /F (force) is safer to prevent orphaned node processes.
+            if backend_process:
+                subprocess.call(['taskkill', '/F', '/T', '/PID', str(backend_process.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if frontend_process:
+                subprocess.call(['taskkill', '/F', '/T', '/PID', str(frontend_process.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else:
+            if backend_process:
+                backend_process.terminate()
+            if frontend_process:
+                frontend_process.terminate()
             
-        if backend_process:
-            backend_process.wait()
-        if frontend_process:
-            frontend_process.wait()
         print("Servers stopped successfully.")
         sys.exit(0)
     except Exception as e:
         print(f"\nAn error occurred: {e}")
-        if backend_process:
-            backend_process.terminate()
-        if frontend_process:
-            frontend_process.terminate()
+        if os.name == 'nt':
+             if backend_process:
+                subprocess.call(['taskkill', '/F', '/T', '/PID', str(backend_process.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+             if frontend_process:
+                subprocess.call(['taskkill', '/F', '/T', '/PID', str(frontend_process.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        else:
+            if backend_process:
+                backend_process.terminate()
+            if frontend_process:
+                frontend_process.terminate()
         sys.exit(1)
 
 if __name__ == "__main__":
