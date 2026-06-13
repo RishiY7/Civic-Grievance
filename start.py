@@ -26,7 +26,7 @@ def main():
         python_exe = sys.executable
 
     # Command to run the backend
-    backend_cmd = [python_exe, "-m", "uvicorn", "main:app", "--reload"]
+    backend_cmd = [python_exe, "-m", "uvicorn", "app.main:app", "--reload"]
     
     # Command to run the frontend
     frontend_cmd = [npm_cmd, "run", "dev"]

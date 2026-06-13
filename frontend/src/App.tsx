@@ -4,6 +4,7 @@ import { MapComponent } from './components/MapComponent';
 import { GrievanceForm } from './components/GrievanceForm';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AuthModal } from './components/AuthModal';
+import { AIFormAssistantView } from './components/AIFormAssistant/AIFormAssistantView';
 
 const uiTranslations: Record<string, Record<string, string>> = {
   'en': {
@@ -165,7 +166,7 @@ export default function App() {
   };
 
   return (
-    <Layout 
+      <Layout 
       userRole={userRole} 
       userDept={userDept}
       onLoginClick={() => setShowAuthModal(true)}
@@ -209,11 +210,18 @@ export default function App() {
           />
         )}
         
-        <MapComponent 
-          currentLocation={currentLocation}
-          onLocationSelect={handleLocationSelect}
-          grievances={filteredGrievances}
-        />
+        <div className="xl:col-span-2 flex flex-col gap-8">
+          <MapComponent 
+            currentLocation={currentLocation}
+            onLocationSelect={handleLocationSelect}
+            grievances={filteredGrievances}
+          />
+          {(!userRole || userRole === 'user') && (
+            <div className="bg-surface-container-lowest rounded-[2.5rem] shadow-sm border border-outline-variant/30 overflow-hidden">
+              <AIFormAssistantView language={language} />
+            </div>
+          )}
+        </div>
       </div>
 
       {showAuthModal && (

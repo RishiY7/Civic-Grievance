@@ -57,7 +57,7 @@ function MapUpdater({ center }: { center: { lat: number; lng: number } }) {
 
 export function MapComponent({ currentLocation, onLocationSelect, grievances }: MapComponentProps) {
   return (
-    <div className="glass-panel rounded-[2.5rem] overflow-hidden flex flex-col h-[500px] xl:col-span-2 relative z-0">
+    <div className="glass-panel rounded-[2.5rem] overflow-hidden flex flex-col h-[500px] relative z-0">
       <div className="p-6 flex items-center justify-between absolute top-0 left-0 right-0 z-20 pointer-events-none">
         <h3 className="font-headline-md text-headline-md bg-white/80 px-4 py-1 rounded-full shadow pointer-events-auto">
           Live District Insights
