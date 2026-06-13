@@ -170,7 +170,7 @@ export function GrievanceForm({
             name="text" 
             rows={3}
             className="w-full px-4 py-3 bg-surface-container-highest border border-outline-variant/30 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface resize-none"
-            placeholder="Describe the issue..."
+            placeholder={translations.placeholder || "Describe the issue..."}
           ></textarea>
           
           <div className="mt-3 flex items-center space-x-3">
