@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { Layout } from './components/Layout';
 import { MapComponent } from './components/MapComponent';
 import { GrievanceForm } from './components/GrievanceForm';
@@ -75,6 +76,7 @@ const uiTranslations: Record<string, Record<string, string>> = {
 
 export default function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [userRole, setUserRole] = useState<string | null>(localStorage.getItem('userRole'));
   const [userDept, setUserDept] = useState<string | null>(localStorage.getItem('userDept'));
   const [language] = useState('en');
@@ -211,73 +213,75 @@ export default function App() {
       onLoginClick={() => navigate('/auth')}
       onLogout={handleLogout}
     >
-      <Routes>
-        {/* PUBLIC GATEWAY */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/auth" element={<AuthPage onLoginSuccess={handleLoginSuccess} />} />
+      <AnimatePresence mode="wait">
+        <Routes key={location.pathname} location={location}>
+          {/* PUBLIC GATEWAY */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthPage onLoginSuccess={handleLoginSuccess} />} />
 
-        {/* PROTECTED ROUTES */}
-        <Route element={<ProtectedRoute allowedRoles={['user']} userRole={userRole} />}>
-          <Route path="/citizen" element={<CitizenPortal grievances={allGrievances} />}>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<CitizenDashboard />} />
-            <Route path="report" element={
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                <GrievanceForm 
-                  currentLocation={currentLocation}
-                  onGetLocation={handleGetLocation}
-                  isLocating={isLocating}
-                  locationCaptured={locationCaptured}
-                  onSuccess={handleGrievanceSuccess}
-                  translations={uiTranslations[language]}
-                />
-                <div className="xl:col-span-2 flex flex-col gap-8">
-                  <MapComponent 
+          {/* PROTECTED ROUTES */}
+          <Route element={<ProtectedRoute allowedRoles={['user']} userRole={userRole} />}>
+            <Route path="/citizen" element={<CitizenPortal grievances={allGrievances} />}>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<CitizenDashboard />} />
+              <Route path="report" element={
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                  <GrievanceForm 
                     currentLocation={currentLocation}
-                    onLocationSelect={handleLocationSelect}
-                    grievances={filteredGrievances}
+                    onGetLocation={handleGetLocation}
+                    isLocating={isLocating}
+                    locationCaptured={locationCaptured}
+                    onSuccess={handleGrievanceSuccess}
+                    translations={uiTranslations[language]}
                   />
-                  <div className="bg-surface-container-lowest rounded-[2.5rem] shadow-sm border border-outline-variant/30 overflow-hidden">
-                    <AIFormAssistantView language={language} />
+                  <div className="xl:col-span-2 flex flex-col gap-8">
+                    <MapComponent 
+                      currentLocation={currentLocation}
+                      onLocationSelect={handleLocationSelect}
+                      grievances={filteredGrievances}
+                    />
+                    <div className="bg-surface-container-lowest rounded-[2.5rem] shadow-sm border border-outline-variant/30 overflow-hidden">
+                      <AIFormAssistantView language={language} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            } />
-            <Route path="issue/:id" element={<CitizenIssueDetail />} />
+              } />
+              <Route path="issue/:id" element={<CitizenIssueDetail />} />
+            </Route>
           </Route>
-        </Route>
 
-        <Route element={<ProtectedRoute allowedRoles={['admin']} userRole={userRole} />}>
-          <Route path="/admin" element={
-            <AdminPortal 
-              grievances={allGrievances} 
-              onOverride={handleOverrideDepartment} 
-            />
-          }>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<AdminAnalytics />} />
-            <Route path="grievances" element={<AdminTable />} />
-            <Route path="users" element={<AdminUsers />} />
+          <Route element={<ProtectedRoute allowedRoles={['admin']} userRole={userRole} />}>
+            <Route path="/admin" element={
+              <AdminPortal 
+                grievances={allGrievances} 
+                onOverride={handleOverrideDepartment} 
+              />
+            }>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AdminAnalytics />} />
+              <Route path="grievances" element={<AdminTable />} />
+              <Route path="users" element={<AdminUsers />} />
+            </Route>
           </Route>
-        </Route>
 
-        <Route element={<ProtectedRoute allowedRoles={['department']} userRole={userRole} />}>
-          <Route path="/department" element={
-            <DepartmentPortal 
-              grievances={filteredGrievances} 
-              onUpdateStatus={handleUpdateGrievanceStatus} 
-            />
-          }>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<DeptDashboard />} />
-            <Route path="map" element={<DeptMap />} />
-            <Route path="issue/:id" element={<ResolveIssue />} />
+          <Route element={<ProtectedRoute allowedRoles={['department']} userRole={userRole} />}>
+            <Route path="/department" element={
+              <DepartmentPortal 
+                grievances={filteredGrievances} 
+                onUpdateStatus={handleUpdateGrievanceStatus} 
+              />
+            }>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<DeptDashboard />} />
+              <Route path="map" element={<DeptMap />} />
+              <Route path="issue/:id" element={<ResolveIssue />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* CATCH ALL */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+          {/* CATCH ALL */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </AnimatePresence>
     </Layout>
   );
 }

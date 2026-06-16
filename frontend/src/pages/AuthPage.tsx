@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { AuthModal } from '../components/AuthModal';
 import { BilingualText } from '../components/BilingualText';
+import { PageTransition } from '../components/Effects/PageTransition';
 
 export function AuthPage({ onLoginSuccess }: { onLoginSuccess: (token: string, role: string, dept: string | null) => void }) {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <PageTransition className="min-h-screen flex items-center justify-center p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] mix-blend-multiply animate-pulse" style={{ animationDuration: '4s' }}></div>
@@ -30,6 +31,6 @@ export function AuthPage({ onLoginSuccess }: { onLoginSuccess: (token: string, r
           onLoginSuccess={onLoginSuccess} 
         />
       </div>
-    </div>
+    </PageTransition>
   );
 }

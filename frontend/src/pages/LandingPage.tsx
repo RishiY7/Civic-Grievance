@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Scene3D } from '../components/Effects/Scene3D';
 import { MapComponent } from '../components/MapComponent';
 import { BilingualText } from '../components/BilingualText';
+import { PageTransition } from '../components/Effects/PageTransition';
+import { GlassCard } from '../components/Effects/GlassCard';
 
 // Mock data for the heatmap of resolved issues
 const mockResolvedGrievances = [
@@ -17,7 +18,7 @@ export function LandingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col gap-12 max-w-7xl mx-auto px-4 py-8">
+    <PageTransition className="flex flex-col gap-12 max-w-7xl mx-auto px-4 py-8">
       <motion.section 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -52,7 +53,7 @@ export function LandingPage() {
           </div>
         </div>
         <div className="hidden md:block w-[400px]">
-          <Scene3D />
+          {/* Reserved space for future elements */}
         </div>
       </motion.section>
 
@@ -63,7 +64,7 @@ export function LandingPage() {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="mt-12"
       >
-        <div className="glass-panel p-8 rounded-[2.5rem] shadow-sm">
+        <GlassCard delay={0.2} className="p-8">
           <div className="mb-6">
             <h2 className="text-3xl font-headline-md font-bold mb-2"><BilingualText text="City Activity Heatmap" /></h2>
             <p className="text-on-surface-variant text-lg"><BilingualText text="Live map of successfully resolved issues across the city. Transparency builds trust." /></p>
@@ -79,8 +80,8 @@ export function LandingPage() {
               <div className="text-2xl font-extrabold text-primary">142</div>
             </div>
           </div>
-        </div>
+        </GlassCard>
       </motion.section>
-    </div>
+    </PageTransition>
   );
 }
