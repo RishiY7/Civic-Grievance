@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { BilingualText } from './BilingualText';
 
 // Fix Leaflet icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -60,7 +61,7 @@ export function MapComponent({ currentLocation, onLocationSelect, grievances }: 
     <div className="glass-panel rounded-[2.5rem] overflow-hidden flex flex-col h-[500px] relative z-0">
       <div className="p-6 flex items-center justify-between absolute top-0 left-0 right-0 z-20 pointer-events-none">
         <h3 className="font-headline-md text-headline-md bg-white/80 px-4 py-1 rounded-full shadow pointer-events-auto">
-          Live District Insights
+          <BilingualText text="Live District Insights" />
         </h3>
       </div>
       
@@ -78,7 +79,7 @@ export function MapComponent({ currentLocation, onLocationSelect, grievances }: 
           <MapUpdater center={currentLocation} />
 
           <Marker position={[currentLocation.lat, currentLocation.lng]}>
-            <Popup>Selected Location for Grievance</Popup>
+            <Popup><BilingualText text="Selected Location for Grievance" /></Popup>
           </Marker>
 
           {grievances.map((g, idx) => {
@@ -109,7 +110,7 @@ export function MapComponent({ currentLocation, onLocationSelect, grievances }: 
                       className="inline-block px-2 py-1 text-xs font-semibold rounded-full mb-2" 
                       style={{ backgroundColor: `${color}33`, color: color, border: `1px solid ${color}` }}
                     >
-                      {g.severity} Severity
+                      {g.severity} <BilingualText text="Severity" />
                     </span>
                     
                     {g.is_duplicate && (
@@ -118,10 +119,10 @@ export function MapComponent({ currentLocation, onLocationSelect, grievances }: 
                       </span>
                     )}
 
-                    <h3 className="font-bold text-lg mb-1">{g.department} Dept</h3>
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Issue: {g.visual_issue || 'Unknown'}</p>
-                    <p className="text-xs text-gray-800 mb-1"><strong>Original:</strong> "{g.original_text || 'No text provided'}"</p>
-                    <p className="text-xs italic text-gray-600 mb-1"><strong>Translation:</strong> "{g.translated_text}"</p>
+                    <h3 className="font-bold text-lg mb-1">{g.department} <BilingualText text="Dept" /></h3>
+                    <p className="text-sm font-semibold text-gray-700 mb-1"><BilingualText text="Issue:" /> {g.visual_issue || 'Unknown'}</p>
+                    <p className="text-xs text-gray-800 mb-1"><strong><BilingualText text="Original:" /></strong> "{g.original_text || 'No text provided'}"</p>
+                    <p className="text-xs italic text-gray-600 mb-1"><strong><BilingualText text="Translation:" /></strong> "{g.translated_text}"</p>
                     {g.image_description && <p className="text-xs text-gray-500 mt-2 border-t pt-1">{g.image_description}</p>}
                     
                     <div className="mt-3 border-t pt-2">
@@ -131,7 +132,7 @@ export function MapComponent({ currentLocation, onLocationSelect, grievances }: 
                         rel="noopener noreferrer" 
                         className="flex items-center justify-center w-full bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 text-xs font-bold py-2 px-3 rounded shadow-sm transition-colors"
                       >
-                        Navigate in Google Maps
+                        <BilingualText text="Navigate in Google Maps" />
                       </a>
                     </div>
                   </div>

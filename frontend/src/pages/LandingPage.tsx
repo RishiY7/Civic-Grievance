@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Scene3D } from '../components/Effects/Scene3D';
 import { MapComponent } from '../components/MapComponent';
+import { BilingualText } from '../components/BilingualText';
 
 // Mock data for the heatmap of resolved issues
 const mockResolvedGrievances = [
@@ -25,10 +26,10 @@ export function LandingPage() {
       >
         <div className="flex-1 space-y-6">
           <h1 className="font-headline-xl text-headline-xl md:text-5xl lg:text-6xl text-on-surface tracking-tight mb-4">
-            Transforming City Management through <span className="gradient-text drop-shadow-md">Civic Grievance</span>
+            <BilingualText text="Transforming City Management through" /> <span className="gradient-text drop-shadow-md">Civic Grievance</span>
           </h1>
           <p className="text-body-lg text-on-surface-variant max-w-2xl text-lg md:text-xl">
-            A transparent, AI-driven platform to report issues in your neighborhood directly to the responsible departments and track their resolution in real-time.
+            <BilingualText text="A transparent, AI-driven platform to report issues in your neighborhood directly to the responsible departments and track their resolution in real-time." />
           </p>
           
           <div className="flex gap-4 pt-4">
@@ -38,7 +39,7 @@ export function LandingPage() {
               onClick={() => navigate('/auth')}
               className="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all"
             >
-              Get Started / Login
+              <BilingualText text="Get Started / Login" />
             </motion.button>
             <motion.button 
               whileHover={{ scale: 1.05 }}
@@ -46,7 +47,7 @@ export function LandingPage() {
               className="bg-surface-container-high text-on-surface px-8 py-4 rounded-xl font-bold text-lg border border-outline-variant/30 hover:bg-surface-container transition-all"
               onClick={() => document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              View City Heatmap
+              <BilingualText text="View City Heatmap" />
             </motion.button>
           </div>
         </div>
@@ -64,8 +65,8 @@ export function LandingPage() {
       >
         <div className="glass-panel p-8 rounded-[2.5rem] shadow-sm">
           <div className="mb-6">
-            <h2 className="text-3xl font-headline-md font-bold mb-2">City Activity Heatmap</h2>
-            <p className="text-on-surface-variant text-lg">Live map of successfully resolved issues across the city. Transparency builds trust.</p>
+            <h2 className="text-3xl font-headline-md font-bold mb-2"><BilingualText text="City Activity Heatmap" /></h2>
+            <p className="text-on-surface-variant text-lg"><BilingualText text="Live map of successfully resolved issues across the city. Transparency builds trust." /></p>
           </div>
           <div className="h-[500px] w-full rounded-2xl overflow-hidden border border-outline-variant/30 relative">
             <MapComponent 
@@ -74,7 +75,7 @@ export function LandingPage() {
               grievances={mockResolvedGrievances}
             />
             <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg z-[400]">
-              <h4 className="font-bold text-sm mb-2 text-on-surface">Resolved Today</h4>
+              <h4 className="font-bold text-sm mb-2 text-on-surface"><BilingualText text="Resolved Today" /></h4>
               <div className="text-2xl font-extrabold text-primary">142</div>
             </div>
           </div>

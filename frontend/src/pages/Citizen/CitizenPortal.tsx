@@ -1,5 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { BilingualText } from '../../components/BilingualText';
 
 export function CitizenPortal({ grievances }: { grievances: any[] }) {
   const location = useLocation();
@@ -19,7 +20,7 @@ export function CitizenPortal({ grievances }: { grievances: any[] }) {
               : 'text-on-surface-variant hover:bg-white/50'
           }`}
         >
-          My Dashboard
+          <BilingualText text="My Dashboard" />
         </button>
         <button
           onClick={() => navigate('/citizen/report')}
@@ -29,7 +30,7 @@ export function CitizenPortal({ grievances }: { grievances: any[] }) {
               : 'text-on-surface-variant hover:bg-white/50'
           }`}
         >
-          Report Issue
+          <BilingualText text="Report Issue" />
         </button>
       </div>
 

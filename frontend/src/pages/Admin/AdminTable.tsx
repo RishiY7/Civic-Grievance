@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Edit2, Save, X, Search } from 'lucide-react';
+import { BilingualText } from '../../components/BilingualText';
 
 interface AdminContext {
   grievances: any[];
@@ -35,8 +36,8 @@ export function AdminTable() {
     <div className="space-y-6">
       <div className="flex items-end justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-headline-md font-bold text-on-surface">The Override Table</h1>
-          <p className="text-on-surface-variant">Global view of all issues. Manually reassign misclassified items here.</p>
+          <h1 className="text-3xl font-headline-md font-bold text-on-surface"><BilingualText text="The Override Table" /></h1>
+          <p className="text-on-surface-variant"><BilingualText text="Global view of all issues. Manually reassign misclassified items here." /></p>
         </div>
         
         <div className="relative">
@@ -56,19 +57,19 @@ export function AdminTable() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-container/50 text-on-surface-variant text-sm uppercase tracking-wider">
-                <th className="p-4 font-bold">ID</th>
-                <th className="p-4 font-bold">Description</th>
-                <th className="p-4 font-bold">AI Tag</th>
-                <th className="p-4 font-bold">Severity</th>
-                <th className="p-4 font-bold">Status</th>
-                <th className="p-4 font-bold">Department</th>
-                <th className="p-4 font-bold text-right">Actions</th>
+                <th className="p-4 font-bold"><BilingualText text="ID" /></th>
+                <th className="p-4 font-bold"><BilingualText text="Description" /></th>
+                <th className="p-4 font-bold"><BilingualText text="AI Tag" /></th>
+                <th className="p-4 font-bold"><BilingualText text="Severity" /></th>
+                <th className="p-4 font-bold"><BilingualText text="Status" /></th>
+                <th className="p-4 font-bold"><BilingualText text="Department" /></th>
+                <th className="p-4 font-bold text-right"><BilingualText text="Actions" /></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/20">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-on-surface-variant">No grievances found.</td>
+                  <td colSpan={7} className="p-8 text-center text-on-surface-variant"><BilingualText text="No grievances found." /></td>
                 </tr>
               ) : filteredData.map((g, i) => (
                 <motion.tr 

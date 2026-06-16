@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { MapComponent } from './components/MapComponent';
 import { GrievanceForm } from './components/GrievanceForm';
-import { AdminDashboard } from './components/AdminDashboard';
 import { AIFormAssistantView } from './components/AIFormAssistant/AIFormAssistantView';
 import { LandingPage } from './pages/LandingPage';
 import { AuthPage } from './pages/AuthPage';
@@ -78,7 +77,7 @@ export default function App() {
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(localStorage.getItem('userRole'));
   const [userDept, setUserDept] = useState<string | null>(localStorage.getItem('userDept'));
-  const [language, setLanguage] = useState('en');
+  const [language] = useState('en');
   
   const [allGrievances, setAllGrievances] = useState<any[]>([]);
   const [filteredGrievances, setFilteredGrievances] = useState<any[]>([]);
@@ -211,8 +210,6 @@ export default function App() {
       userDept={userDept}
       onLoginClick={() => navigate('/auth')}
       onLogout={handleLogout}
-      language={language}
-      onLanguageChange={setLanguage}
     >
       <Routes>
         {/* PUBLIC GATEWAY */}

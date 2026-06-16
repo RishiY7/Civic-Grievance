@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 import { motion } from 'framer-motion';
+import { BilingualText } from './BilingualText';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -13,7 +14,7 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariants: any = {
   hidden: { opacity: 0, y: 20 },
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
@@ -107,7 +108,7 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <span className="material-symbols-outlined text-6xl text-primary" style={{ fontFamily: 'Material Symbols Outlined' }}>campaign</span>
           </div>
-          <p className="text-label-lg font-bold text-primary mb-4 uppercase tracking-wide">Total Grievances</p>
+          <p className="text-label-lg font-bold text-primary mb-4 uppercase tracking-wide"><BilingualText text="Total Grievances" /></p>
           <div className="flex items-baseline gap-2">
             <span className="text-headline-xl font-extrabold text-on-surface">{total}</span>
           </div>
@@ -120,7 +121,7 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <span className="material-symbols-outlined text-6xl text-secondary" style={{ fontFamily: 'Material Symbols Outlined' }}>verified</span>
           </div>
-          <p className="text-label-lg font-bold text-secondary mb-4 uppercase tracking-wide">Resolved (Est)</p>
+          <p className="text-label-lg font-bold text-secondary mb-4 uppercase tracking-wide"><BilingualText text="Resolved (Est)" /></p>
           <div className="flex items-baseline gap-2">
             <span className="text-headline-xl font-extrabold text-on-surface">{resolved}</span>
           </div>
@@ -131,7 +132,7 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
 
         <motion.div variants={itemVariants} className="glass-panel p-6 rounded-[2rem] flex flex-col justify-between hover-lift relative overflow-hidden">
           <div>
-            <h3 className="font-bold text-label-lg text-on-surface-variant mb-2">Quick Filters</h3>
+            <h3 className="font-bold text-label-lg text-on-surface-variant mb-2"><BilingualText text="Quick Filters" /></h3>
             <div className="flex gap-2">
               <select 
                 value={deptFilter} 
@@ -159,7 +160,7 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
             </div>
           </div>
           <div className="mt-4 text-xs text-on-surface-variant opacity-70">
-            Applying these filters updates the map below in real-time.
+            <BilingualText text="Applying these filters updates the map below in real-time." />
           </div>
         </motion.div>
       </section>
@@ -167,13 +168,13 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
       {/* Analytics Charts */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <motion.div variants={itemVariants} className="glass-panel p-6 rounded-[2rem]">
-          <h3 className="font-headline-md text-headline-md mb-4">Department Breakdown</h3>
+          <h3 className="font-headline-md text-headline-md mb-4"><BilingualText text="Department Breakdown" /></h3>
           <div className="h-64">
             <Pie data={pieData} options={chartOptions} />
           </div>
         </motion.div>
         <motion.div variants={itemVariants} className="glass-panel p-6 rounded-[2rem]">
-          <h3 className="font-headline-md text-headline-md mb-4">Severity Distribution</h3>
+          <h3 className="font-headline-md text-headline-md mb-4"><BilingualText text="Severity Distribution" /></h3>
           <div className="h-64">
             <Bar data={barData} options={barOptions} />
           </div>

@@ -1,6 +1,7 @@
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, AlertTriangle, ChevronRight, Clock, Wrench, CheckCircle } from 'lucide-react';
+import { MapPin, ChevronRight, Clock, Wrench, CheckCircle } from 'lucide-react';
+import { BilingualText } from '../../components/BilingualText';
 
 interface DeptContext {
   grievances: any[];
@@ -27,7 +28,7 @@ export function DeptDashboard() {
       <div className="flex items-center justify-between mb-4 px-2">
         <h3 className="font-bold flex items-center gap-2 text-on-surface">
           <Icon className={colorClass} size={20} />
-          {title}
+          {typeof title === 'string' ? <BilingualText text={title} /> : title}
         </h3>
         <span className="bg-surface-container-high px-2 py-1 rounded-full text-xs font-bold text-on-surface-variant">
           {items.length}
@@ -62,7 +63,7 @@ export function DeptDashboard() {
         ))}
         {items.length === 0 && (
           <div className="text-center p-8 text-on-surface-variant opacity-50 border-2 border-dashed border-outline-variant/30 rounded-2xl">
-            No issues
+            <BilingualText text="No issues" />
           </div>
         )}
       </div>
@@ -72,8 +73,8 @@ export function DeptDashboard() {
   return (
     <div className="h-full">
       <div className="mb-6">
-        <h1 className="text-3xl font-headline-md font-bold text-on-surface mb-2">Workflow Board</h1>
-        <p className="text-on-surface-variant">Manage and resolve active issues assigned to your department.</p>
+        <h1 className="text-3xl font-headline-md font-bold text-on-surface mb-2"><BilingualText text="Workflow Board" /></h1>
+        <p className="text-on-surface-variant"><BilingualText text="Manage and resolve active issues assigned to your department." /></p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

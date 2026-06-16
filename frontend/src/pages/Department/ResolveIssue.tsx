@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle, Upload, Camera, AlertTriangle, Send } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Camera, AlertTriangle, Send } from 'lucide-react';
+import { BilingualText } from '../../components/BilingualText';
 
 interface DeptContext {
   grievances: any[];
@@ -57,7 +58,7 @@ export function ResolveIssue() {
         className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-bold"
       >
         <ArrowLeft size={20} />
-        Back to Dashboard
+        <BilingualText text="Back to Dashboard" />
       </button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
@@ -68,7 +69,7 @@ export function ResolveIssue() {
             
             <div className="space-y-4">
               <div>
-                <p className="text-xs font-bold text-on-surface-variant uppercase mb-1">Description</p>
+                <p className="text-xs font-bold text-on-surface-variant uppercase mb-1"><BilingualText text="Description" /></p>
                 <div className="p-4 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 text-on-surface">
                   {grievance.original_text || grievance.translated_text || grievance.visual_issue}
                 </div>
@@ -76,11 +77,11 @@ export function ResolveIssue() {
               
               <div className="flex gap-4">
                 <div className="flex-1 p-4 bg-error/5 rounded-2xl border border-error/10">
-                  <p className="text-xs font-bold text-on-surface-variant uppercase mb-1 flex items-center gap-1"><AlertTriangle size={14} className="text-error" /> Severity</p>
+                  <p className="text-xs font-bold text-on-surface-variant uppercase mb-1 flex items-center gap-1"><AlertTriangle size={14} className="text-error" /> <BilingualText text="Severity" /></p>
                   <p className="font-bold text-error">{grievance.severity}</p>
                 </div>
                 <div className="flex-1 p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                  <p className="text-xs font-bold text-on-surface-variant uppercase mb-1">AI Tag</p>
+                  <p className="text-xs font-bold text-on-surface-variant uppercase mb-1"><BilingualText text="AI Tag" /></p>
                   <p className="font-bold text-primary">{grievance.visual_issue}</p>
                 </div>
               </div>
@@ -92,19 +93,19 @@ export function ResolveIssue() {
         <div className="space-y-6">
           <div className="glass-panel p-8 rounded-[2.5rem] border-2 border-primary/20">
             <h2 className="text-xl font-bold mb-6 text-on-surface flex items-center gap-2">
-              <CheckCircle className="text-primary" /> Action Center
+              <CheckCircle className="text-primary" /> <BilingualText text="Action Center" />
             </h2>
 
             {grievance.status === 'Resolved' ? (
               <div className="text-center p-8 bg-secondary/10 border border-secondary/20 rounded-2xl">
                 <CheckCircle size={48} className="text-secondary mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-secondary mb-2">Issue Resolved</h3>
-                <p className="text-on-surface-variant">Citizen has been notified of the resolution.</p>
+                <h3 className="text-xl font-bold text-secondary mb-2"><BilingualText text="Issue Resolved" /></h3>
+                <p className="text-on-surface-variant"><BilingualText text="Citizen has been notified of the resolution." /></p>
               </div>
             ) : (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-bold text-on-surface mb-2">Upload Proof of Work (Required)</label>
+                  <label className="block text-sm font-bold text-on-surface mb-2"><BilingualText text="Upload Proof of Work (Required)" /></label>
                   <div className="relative border-2 border-dashed border-outline-variant/50 rounded-2xl p-6 hover:bg-surface-container-low transition-colors text-center cursor-pointer group">
                     <input 
                       type="file" 
@@ -125,7 +126,7 @@ export function ResolveIssue() {
                       ) : (
                         <>
                           <Camera size={32} className="mb-2" />
-                          <span className="text-sm font-medium">Click to take photo or upload</span>
+                          <span className="text-sm font-medium"><BilingualText text="Click to take photo or upload" /></span>
                         </>
                       )}
                     </div>
@@ -140,7 +141,7 @@ export function ResolveIssue() {
                     disabled={isSubmitting}
                     className="w-full bg-gradient-to-r from-secondary to-[#10b981] text-white px-6 py-4 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex justify-center items-center gap-2"
                   >
-                    {isSubmitting ? "Sending Notification..." : <><Send size={18} /> Mark as Resolved & Notify Citizen</>}
+                    {isSubmitting ? <BilingualText text="Sending Notification..." /> : <><Send size={18} /> <BilingualText text="Mark as Resolved & Notify Citizen" /></>}
                   </motion.button>
                   
                   {grievance.status === 'Pending' && (
@@ -148,7 +149,7 @@ export function ResolveIssue() {
                       onClick={handleStartWork}
                       className="w-full bg-surface-container-high text-on-surface px-6 py-4 rounded-xl font-bold hover:bg-surface-container transition-all"
                     >
-                      Start Work (Mark In-Progress)
+                      <BilingualText text="Start Work (Mark In-Progress)" />
                     </button>
                   )}
                 </div>

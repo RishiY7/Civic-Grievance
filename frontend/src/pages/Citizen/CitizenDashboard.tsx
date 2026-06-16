@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle, Wrench, ChevronRight } from 'lucide-react';
 import Tilt from 'react-parallax-tilt';
+import { BilingualText } from '../../components/BilingualText';
 
 interface DashboardContext {
   grievances: any[];
@@ -16,7 +17,7 @@ export function CitizenDashboard() {
     show: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
@@ -49,8 +50,8 @@ export function CitizenDashboard() {
     <div className="space-y-6">
       <div className="flex items-end justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-headline-md font-bold text-on-surface">My Grievances</h1>
-          <p className="text-on-surface-variant">Track the status of your reported issues.</p>
+          <h1 className="text-3xl font-headline-md font-bold text-on-surface"><BilingualText text="My Grievances" /></h1>
+          <p className="text-on-surface-variant"><BilingualText text="Track the status of your reported issues." /></p>
         </div>
       </div>
 
@@ -59,13 +60,13 @@ export function CitizenDashboard() {
           <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <CheckCircle className="text-primary" size={32} />
           </div>
-          <h3 className="text-xl font-bold text-on-surface mb-2">No issues reported yet</h3>
-          <p className="text-on-surface-variant mb-6">Your neighborhood looks clean. Found an issue?</p>
+          <h3 className="text-xl font-bold text-on-surface mb-2"><BilingualText text="No issues reported yet" /></h3>
+          <p className="text-on-surface-variant mb-6"><BilingualText text="Your neighborhood looks clean. Found an issue?" /></p>
           <button 
             onClick={() => navigate('/citizen/report')}
             className="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all"
           >
-            Report an Issue
+            <BilingualText text="Report an Issue" />
           </button>
         </div>
       ) : (
@@ -80,7 +81,7 @@ export function CitizenDashboard() {
                 <div className="flex justify-between items-start mb-4">
                   <div className={`px-3 py-1 rounded-full border text-xs font-bold flex items-center gap-1 ${getStatusColor(g.status)}`}>
                     {getStatusIcon(g.status)}
-                    {g.status}
+                    <BilingualText text={g.status} />
                   </div>
                   <span className="text-xs text-on-surface-variant font-medium">{g.date}</span>
                 </div>

@@ -8,8 +8,6 @@ interface LayoutProps {
   userDept: string | null;
   onLoginClick: () => void;
   onLogout: () => void;
-  language: string;
-  onLanguageChange: (lang: string) => void;
 }
 
 export function Layout({ 
@@ -17,9 +15,7 @@ export function Layout({
   userRole, 
   userDept, 
   onLoginClick, 
-  onLogout,
-  language,
-  onLanguageChange
+  onLogout
 }: LayoutProps) {
   return (
     <div className="bg-background font-body-md text-on-background min-h-screen overflow-x-hidden">
@@ -27,8 +23,6 @@ export function Layout({
         userRole={userRole} 
         onLoginClick={onLoginClick} 
         onLogout={onLogout} 
-        language={language}
-        onLanguageChange={onLanguageChange}
       />
       
       <div className="flex pt-16 h-screen">

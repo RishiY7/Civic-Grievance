@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Mic, Square, MapPin, Upload, Loader2, Send, CheckCircle2 } from 'lucide-react';
 import Tilt from 'react-parallax-tilt';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BilingualText } from './BilingualText';
 
 interface GrievanceFormProps {
   currentLocation: { lat: number; lng: number };
@@ -133,7 +134,7 @@ export function GrievanceForm({
       <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col space-y-5 flex-1 relative z-10">
         <div>
           <label htmlFor="image" className="block text-label-lg font-bold text-on-surface mb-1">
-            {translations.uploadLabel || "Upload Image"}
+            <BilingualText text={translations.uploadLabel || "Upload Image"} />
           </label>
           <div className="relative border-2 border-dashed border-outline-variant/50 rounded-xl p-4 hover:bg-surface-container-low transition-colors text-center cursor-pointer">
             <input 
@@ -146,7 +147,7 @@ export function GrievanceForm({
             />
             <div className="flex flex-col items-center justify-center text-on-surface-variant">
               <Upload size={24} className="mb-2 text-primary" />
-              <span className="text-sm">Click to upload or drag and drop</span>
+              <span className="text-sm"><BilingualText text="Click to upload or drag and drop" /></span>
             </div>
           </div>
         </div>
@@ -258,30 +259,30 @@ export function GrievanceForm({
           >
             <div className="flex items-center gap-3 text-secondary mb-4 pb-4 border-b border-outline-variant/20">
               <CheckCircle2 size={32} />
-              <h2 className="text-xl font-bold text-on-surface">Submission Successful</h2>
+              <h2 className="text-xl font-bold text-on-surface"><BilingualText text="Submission Successful" /></h2>
             </div>
             
-            <h3 className="font-bold text-label-lg text-primary uppercase tracking-wider mb-4">AI Analysis Result</h3>
+            <h3 className="font-bold text-label-lg text-primary uppercase tracking-wider mb-4"><BilingualText text="AI Analysis Result" /></h3>
             
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold text-on-surface-variant">Severity:</span>
+                <span className="font-semibold text-on-surface-variant"><BilingualText text="Severity:" /></span>
                 <span className="col-span-2 font-bold text-on-surface">{result.severity}</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold text-on-surface-variant">Department:</span>
+                <span className="font-semibold text-on-surface-variant"><BilingualText text="Department:" /></span>
                 <span className="col-span-2 text-on-surface">{result.department}</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold text-on-surface-variant">Visual Issue:</span>
+                <span className="font-semibold text-on-surface-variant"><BilingualText text="Visual Issue:" /></span>
                 <span className="col-span-2 text-on-surface">{result.visual_issue}</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold text-on-surface-variant">Original:</span>
+                <span className="font-semibold text-on-surface-variant"><BilingualText text="Original:" /></span>
                 <span className="col-span-2 text-on-surface">{result.original_text}</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <span className="font-semibold text-on-surface-variant">Translated:</span>
+                <span className="font-semibold text-on-surface-variant"><BilingualText text="Translated:" /></span>
                 <span className="col-span-2 text-on-surface italic">{result.translated_text}</span>
               </div>
             </div>
@@ -292,7 +293,7 @@ export function GrievanceForm({
               onClick={() => setResult(null)}
               className="mt-auto w-full py-3 bg-surface-container-high text-on-surface font-bold rounded-xl hover:bg-surface-container transition-colors"
             >
-              Submit Another
+              <BilingualText text="Submit Another" />
             </motion.button>
           </motion.div>
         )}

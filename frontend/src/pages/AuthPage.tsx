@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { AuthModal } from '../components/AuthModal';
+import { BilingualText } from '../components/BilingualText';
 
 export function AuthPage({ onLoginSuccess }: { onLoginSuccess: (token: string, role: string, dept: string | null) => void }) {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export function AuthPage({ onLoginSuccess }: { onLoginSuccess: (token: string, r
           <h1 className="text-4xl font-headline-xl font-bold mb-2">
             <span className="gradient-text">Civic Grievance</span>
           </h1>
-          <p className="text-on-surface-variant">Sign in to access your portal</p>
+          <p className="text-on-surface-variant"><BilingualText text="Sign in to access your portal" /></p>
         </div>
         
         {/* We reuse the AuthModal but render it inline by making it not absolute if we wanted, 

@@ -1,14 +1,15 @@
 import { Search, Bell, LogOut, LogIn } from 'lucide-react';
+import { BilingualText } from './BilingualText';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeaderProps {
   userRole: string | null;
   onLoginClick: () => void;
   onLogout: () => void;
-  language: string;
-  onLanguageChange: (lang: string) => void;
 }
 
-export function Header({ userRole, onLoginClick, onLogout, language, onLanguageChange }: HeaderProps) {
+export function Header({ userRole, onLoginClick, onLogout }: HeaderProps) {
+  const { language, setLanguage } = useLanguage();
   return (
     <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-[0_4px_30px_rgba(0,88,188,0.05)]">
       <div className="flex items-center gap-8">
@@ -17,10 +18,10 @@ export function Header({ userRole, onLoginClick, onLogout, language, onLanguageC
         </span>
         <nav className="hidden lg:flex items-center gap-6">
           <a className="text-primary font-bold border-b-2 border-primary py-5 font-body-lg text-body-lg" href="#">
-            {userRole === 'admin' || userRole === 'department' ? 'Dashboard' : 'Home'}
+            {userRole === 'admin' || userRole === 'department' ? <BilingualText text="Dashboard" /> : <BilingualText text="Home" />}
           </a>
           <a className="text-on-surface-variant opacity-80 hover:text-primary transition-colors duration-200 font-body-lg text-body-lg" href="#">
-            Map
+            <BilingualText text="Map" />
           </a>
         </nav>
       </div>
@@ -28,12 +29,12 @@ export function Header({ userRole, onLoginClick, onLogout, language, onLanguageC
       <div className="flex items-center gap-4">
         <select 
           value={language}
-          onChange={(e) => onLanguageChange(e.target.value)}
+          onChange={(e) => setLanguage(e.target.value as any)}
           className="text-sm p-1 border border-outline-variant bg-transparent rounded text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <option value="en">English</option>
-          <option value="kn">ಕನ್ನಡ (Kannada)</option>
-          <option value="hi">हिंदी (Hindi)</option>
+          <option value="English">English</option>
+          <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+          <option value="Hindi">हिंदी (Hindi)</option>
         </select>
 
         <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant">
@@ -53,7 +54,7 @@ export function Header({ userRole, onLoginClick, onLogout, language, onLanguageC
             className="flex items-center gap-2 pl-3 pr-4 py-1.5 rounded-full border border-error/50 hover:bg-error/10 text-error transition-colors"
           >
             <LogOut size={18} />
-            <span className="text-sm font-bold">Logout</span>
+            <span className="text-sm font-bold"><BilingualText text="Logout" /></span>
           </button>
         ) : (
           <button 
@@ -61,7 +62,7 @@ export function Header({ userRole, onLoginClick, onLogout, language, onLanguageC
             className="flex items-center gap-2 pl-3 pr-4 py-1.5 rounded-full border border-primary text-primary hover:bg-primary/10 transition-colors"
           >
             <LogIn size={18} />
-            <span className="text-sm font-bold">Login</span>
+            <span className="text-sm font-bold"><BilingualText text="Login" /></span>
           </button>
         )}
       </div>

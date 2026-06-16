@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, UserCircle, ShieldCheck } from 'lucide-react';
+import { BilingualText } from './BilingualText';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -73,10 +74,10 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
             {isLogin ? <ShieldCheck size={32} /> : <UserCircle size={32} />}
           </div>
           <h2 className="text-2xl font-bold text-on-surface">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            {isLogin ? <BilingualText text="Welcome Back" /> : <BilingualText text="Create Account" />}
           </h2>
           <p className="text-on-surface-variant text-sm mt-1">
-            {isLogin ? 'Login to access the dashboard' : 'Join Civic Grievance to report issues'}
+            {isLogin ? <BilingualText text="Login to access the dashboard" /> : <BilingualText text="Join Civic Grievance to report issues" />}
           </p>
         </div>
 
@@ -85,20 +86,20 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
             className={`flex-1 py-2 font-bold text-sm transition-colors ${isLogin ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant'}`}
             onClick={() => { setIsLogin(true); setError(''); }}
           >
-            Login
+            <BilingualText text="Login" />
           </button>
           <button
             className={`flex-1 py-2 font-bold text-sm transition-colors ${!isLogin ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant'}`}
             onClick={() => { setIsLogin(false); setError(''); }}
           >
-            Sign Up
+            <BilingualText text="Sign Up" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div>
-              <label className="block text-sm font-bold text-on-surface mb-1">Full Name</label>
+              <label className="block text-sm font-bold text-on-surface mb-1"><BilingualText text="Full Name" /></label>
               <input 
                 type="text" 
                 required
@@ -111,7 +112,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
           )}
           
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-1">Email</label>
+            <label className="block text-sm font-bold text-on-surface mb-1"><BilingualText text="Email" /></label>
             <input 
               type="email" 
               required
@@ -122,7 +123,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-1">Password</label>
+            <label className="block text-sm font-bold text-on-surface mb-1"><BilingualText text="Password" /></label>
             <input 
               type="password" 
               required
@@ -139,7 +140,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
             type="submit"
             className="w-full bg-gradient-to-r from-primary to-secondary text-white font-bold py-3 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all mt-4"
           >
-            {isLogin ? 'Login' : 'Sign Up'}
+            {isLogin ? <BilingualText text="Login" /> : <BilingualText text="Sign Up" />}
           </button>
         </form>
       </div>
