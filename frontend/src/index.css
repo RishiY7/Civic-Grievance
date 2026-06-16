@@ -4,10 +4,11 @@
 
 @layer utilities {
   .glass-panel {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 4px 30px rgba(0, 88, 188, 0.05);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 32px rgba(0, 88, 188, 0.1);
   }
   
   .dark .glass-panel {
@@ -42,6 +43,21 @@
 
 body {
   @apply bg-background font-body-md text-on-background min-h-screen overflow-x-hidden;
+  background: linear-gradient(-45deg, #f8fafc, #e0f2fe, #dbeafe, #bae6fd);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+.dark body {
+  background: linear-gradient(-45deg, #0f172a, #1e293b, #020617, #0f172a);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Leaflet specific overrides */

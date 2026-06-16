@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
+import enum
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from .database import Base, engine
 
@@ -26,25 +27,23 @@ class Grievance(Base):
 
     user = relationship("User", back_populates="grievances")
 
-class Admin(Base):
-    __tablename__ = "admins"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-
-class DepartmentAdmin(Base):
-    __tablename__ = "department_admins"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    department_name = Column(String) # 'Roads', 'Water', 'Sanitation', 'Electricity'
+class UserRole(str, enum.Enum):
+    citizen = "citizen"
+    department_official = "department_official"
+    admin = "admin"
 
 class User(Base):
     __tablename__ = "users"
+
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
     
+    role = Column(Enum(UserRole), default=UserRole.citizen, nullable=False)
+    department = Column(String, nullable=True) 
+    is_active = Column(Boolean, default=True)
+
     grievances = relationship("Grievance", back_populates="user")
 
 # Create tables

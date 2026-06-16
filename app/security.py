@@ -5,7 +5,7 @@ from passlib.context import CryptContext
 from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from .database import SessionLocal
-from .models import Admin, DepartmentAdmin
+from .models import User
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback-secret-key")
 ALGORITHM = "HS256"
@@ -49,18 +49,4 @@ def get_optional_user_token(token: str = Depends(OAuth2PasswordBearer(tokenUrl="
     except jwt.PyJWTError:
         return None
 
-def init_default_accounts(db):
-    default_admin_user = os.getenv("DEFAULT_ADMIN_USER")
-    default_admin_pass = os.getenv("DEFAULT_ADMIN_PASS")
-    if default_admin_user and default_admin_pass:
-        if not db.query(Admin).filter(Admin.username == default_admin_user).first():
-            db.add(Admin(username=default_admin_user, hashed_password=get_password_hash(default_admin_pass)))
-    
-    departments = ["Roads", "Water", "Sanitation", "Electricity"]
-    for dept in departments:
-        env_user = os.getenv(f"DEPT_{dept.upper()}_USER")
-        env_pass = os.getenv(f"DEPT_{dept.upper()}_PASS")
-        if env_user and env_pass:
-            if not db.query(DepartmentAdmin).filter(DepartmentAdmin.username == env_user).first():
-                db.add(DepartmentAdmin(username=env_user, hashed_password=get_password_hash(env_pass), department_name=dept))
-    db.commit()
+

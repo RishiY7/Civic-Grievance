@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Mic, Square, MapPin, Upload, Loader2, Send, CheckCircle2 } from 'lucide-react';
+import Tilt from 'react-parallax-tilt';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface GrievanceFormProps {
   currentLocation: { lat: number; lng: number };
@@ -115,8 +117,9 @@ export function GrievanceForm({
   };
 
   return (
-    <div className="glass-panel p-6 rounded-3xl flex flex-col xl:col-span-1 shadow-lg relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+    <Tilt tiltMaxAngleX={5} tiltMaxAngleY={5} perspective={1000} transitionSpeed={2000} scale={1.02} className="xl:col-span-1">
+      <div className="glass-panel p-6 rounded-3xl flex flex-col h-full shadow-lg relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none transition-transform duration-700 group-hover:scale-150 group-hover:rotate-12">
         <Send size={100} className="text-primary" />
       </div>
       
@@ -222,14 +225,19 @@ export function GrievanceForm({
         </div>
 
         <div className="mt-auto pt-4">
-          <button 
+          <motion.button 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             type="submit" 
             disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-primary to-secondary text-white font-bold py-4 px-6 rounded-xl hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:hover:transform-none"
+            className="w-full bg-gradient-to-r from-primary to-secondary text-white font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-xl transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:hover:transform-none relative overflow-hidden"
           >
-            {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-            <span>{translations.submitBtn || "Submit Grievance"}</span>
-          </button>
+            {isSubmitting && (
+              <span className="absolute inset-0 bg-white/20 animate-pulse"></span>
+            )}
+            {isSubmitting ? <Loader2 size={20} className="animate-spin relative z-10" /> : <Send size={20} className="relative z-10" />}
+            <span className="relative z-10">{translations.submitBtn || "Submit Grievance"}</span>
+          </motion.button>
         </div>
         
         {errorMsg && (
@@ -240,46 +248,56 @@ export function GrievanceForm({
       </form>
 
       {/* Result Details Overlay/Modal */}
-      {result && (
-        <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-20 flex flex-col p-6 overflow-y-auto">
-          <div className="flex items-center gap-3 text-secondary mb-4 pb-4 border-b border-outline-variant/20">
-            <CheckCircle2 size={32} />
-            <h2 className="text-xl font-bold text-on-surface">Submission Successful</h2>
-          </div>
-          
-          <h3 className="font-bold text-label-lg text-primary uppercase tracking-wider mb-4">AI Analysis Result</h3>
-          
-          <div className="space-y-4 text-sm">
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold text-on-surface-variant">Severity:</span>
-              <span className="col-span-2 font-bold text-on-surface">{result.severity}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold text-on-surface-variant">Department:</span>
-              <span className="col-span-2 text-on-surface">{result.department}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold text-on-surface-variant">Visual Issue:</span>
-              <span className="col-span-2 text-on-surface">{result.visual_issue}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold text-on-surface-variant">Original:</span>
-              <span className="col-span-2 text-on-surface">{result.original_text}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-semibold text-on-surface-variant">Translated:</span>
-              <span className="col-span-2 text-on-surface italic">{result.translated_text}</span>
-            </div>
-          </div>
-          
-          <button 
-            onClick={() => setResult(null)}
-            className="mt-auto w-full py-3 bg-surface-container-high text-on-surface font-bold rounded-xl hover:bg-surface-container transition-colors"
+      <AnimatePresence>
+        {result && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute inset-0 bg-white/95 backdrop-blur-md z-20 flex flex-col p-6 overflow-y-auto"
           >
-            Submit Another
-          </button>
-        </div>
-      )}
-    </div>
+            <div className="flex items-center gap-3 text-secondary mb-4 pb-4 border-b border-outline-variant/20">
+              <CheckCircle2 size={32} />
+              <h2 className="text-xl font-bold text-on-surface">Submission Successful</h2>
+            </div>
+            
+            <h3 className="font-bold text-label-lg text-primary uppercase tracking-wider mb-4">AI Analysis Result</h3>
+            
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-3 gap-2">
+                <span className="font-semibold text-on-surface-variant">Severity:</span>
+                <span className="col-span-2 font-bold text-on-surface">{result.severity}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <span className="font-semibold text-on-surface-variant">Department:</span>
+                <span className="col-span-2 text-on-surface">{result.department}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <span className="font-semibold text-on-surface-variant">Visual Issue:</span>
+                <span className="col-span-2 text-on-surface">{result.visual_issue}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <span className="font-semibold text-on-surface-variant">Original:</span>
+                <span className="col-span-2 text-on-surface">{result.original_text}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <span className="font-semibold text-on-surface-variant">Translated:</span>
+                <span className="col-span-2 text-on-surface italic">{result.translated_text}</span>
+              </div>
+            </div>
+            
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setResult(null)}
+              className="mt-auto w-full py-3 bg-surface-container-high text-on-surface font-bold rounded-xl hover:bg-surface-container transition-colors"
+            >
+              Submit Another
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      </div>
+    </Tilt>
   );
 }

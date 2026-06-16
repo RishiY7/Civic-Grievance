@@ -8,8 +8,9 @@ interface AuthModalProps {
 
 export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,7 +20,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
     if (isLogin) {
       try {
         const formData = new URLSearchParams();
-        formData.append('username', username);
+        formData.append('username', email); // OAuth2 expects 'username' field, we send the email in it
         formData.append('password', password);
 
         // Fetching from python backend
@@ -28,7 +29,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
           const data = await res.json();
           onLoginSuccess(data.access_token, data.role, data.department);
         } else {
-          setError('Incorrect username or password');
+          setError('Incorrect email or password');
         }
       } catch (err) {
         setError('Connection error. Is the server running?');
@@ -38,13 +39,18 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         const res = await fetch('http://localhost:8000/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ 
+            email, 
+            password, 
+            full_name: fullName,
+            role: "citizen" // Default signup is citizen
+          })
         });
         if (res.ok) {
           alert('Signup successful! Please log in.');
           setIsLogin(true);
         } else {
-          setError('Signup failed. Username may already exist.');
+          setError('Signup failed. Email may already exist or format is invalid.');
         }
       } catch (err) {
         setError('Connection error.');
@@ -90,15 +96,29 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-bold text-on-surface mb-1">Full Name</label>
+              <input 
+                type="text" 
+                required
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                className="w-full px-4 py-3 bg-surface-container-highest border border-outline-variant/30 rounded-xl focus:outline-none focus:border-primary text-on-surface"
+                placeholder="Enter full name"
+              />
+            </div>
+          )}
+          
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-1">Username</label>
+            <label className="block text-sm font-bold text-on-surface mb-1">Email</label>
             <input 
-              type="text" 
+              type="email" 
               required
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="w-full px-4 py-3 bg-surface-container-highest border border-outline-variant/30 rounded-xl focus:outline-none focus:border-primary text-on-surface"
-              placeholder="Enter username"
+              placeholder="Enter email address"
             />
           </div>
           <div>

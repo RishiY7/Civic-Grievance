@@ -1,8 +1,25 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional
+from .models import UserRole
 
-class UserSignup(BaseModel):
-    username: str
+# What FastAPI expects when creating a new user
+class UserCreate(BaseModel):
+    email: EmailStr
     password: str
+    full_name: str
+    role: UserRole = UserRole.citizen
+    department: Optional[str] = None # Can be blank for citizens and admins
+
+# What FastAPI returns to the frontend (NEVER return the password)
+class UserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    full_name: str
+    role: UserRole
+    department: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 class GrievanceAnalysis(BaseModel):
     translated_text: str = Field(description="The English translation/transcription of the user's description, or visual description if none provided")

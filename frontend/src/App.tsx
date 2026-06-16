@@ -1,10 +1,24 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { MapComponent } from './components/MapComponent';
 import { GrievanceForm } from './components/GrievanceForm';
 import { AdminDashboard } from './components/AdminDashboard';
-import { AuthModal } from './components/AuthModal';
 import { AIFormAssistantView } from './components/AIFormAssistant/AIFormAssistantView';
+import { LandingPage } from './pages/LandingPage';
+import { AuthPage } from './pages/AuthPage';
+import { CitizenPortal } from './pages/Citizen/CitizenPortal';
+import { CitizenDashboard } from './pages/Citizen/CitizenDashboard';
+import { IssueDetail as CitizenIssueDetail } from './pages/Citizen/IssueDetail';
+import { DepartmentPortal } from './pages/Department/DepartmentPortal';
+import { DeptDashboard } from './pages/Department/DeptDashboard';
+import { DeptMap } from './pages/Department/DeptMap';
+import { ResolveIssue } from './pages/Department/ResolveIssue';
+import { AdminPortal } from './pages/Admin/AdminPortal';
+import { AdminAnalytics } from './pages/Admin/AdminAnalytics';
+import { AdminTable } from './pages/Admin/AdminTable';
+import { AdminUsers } from './pages/Admin/AdminUsers';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 const uiTranslations: Record<string, Record<string, string>> = {
   'en': {
@@ -61,9 +75,9 @@ const uiTranslations: Record<string, Record<string, string>> = {
 };
 
 export default function App() {
+  const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(localStorage.getItem('userRole'));
   const [userDept, setUserDept] = useState<string | null>(localStorage.getItem('userDept'));
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [language, setLanguage] = useState('en');
   
   const [allGrievances, setAllGrievances] = useState<any[]>([]);
@@ -103,7 +117,11 @@ export default function App() {
     
     setUserRole(role);
     setUserDept(dept);
-    setShowAuthModal(false);
+    
+    // Redirect based on role
+    if (role === 'admin') navigate('/admin');
+    else if (role === 'department') navigate('/department');
+    else navigate('/citizen');
   };
 
   const handleLogout = () => {
@@ -114,6 +132,7 @@ export default function App() {
     setUserDept(null);
     setAllGrievances([]);
     setFilteredGrievances([]);
+    navigate('/');
   };
 
   const handleGetLocation = () => {
@@ -135,7 +154,7 @@ export default function App() {
 
   const handleLocationSelect = (lat: number, lng: number) => {
     setCurrentLocation({ lat, lng });
-    setLocationCaptured(false); // Reset to allow them to capture GPS again if they want
+    setLocationCaptured(false);
   };
 
   const handleGrievanceSuccess = (data: any) => {
@@ -152,8 +171,29 @@ export default function App() {
     };
     const updated = [...allGrievances, newGrievance];
     setAllGrievances(updated);
-    // Let AdminDashboard's effect re-trigger applyFilters by preserving state, but if user we just set it
     if (!userRole || userRole === 'user') setFilteredGrievances(updated);
+  };
+
+  const handleUpdateGrievanceStatus = (id: number, newStatus: string, proofPhoto?: string) => {
+    const updated = [...allGrievances];
+    if (updated[id]) {
+      updated[id] = { ...updated[id], status: newStatus, proofPhoto };
+      setAllGrievances(updated);
+      
+      // Re-apply filters if department is viewing
+      if (userRole === 'department') {
+        applyFilters(updated, userDept || 'All', 'All');
+      }
+    }
+  };
+
+  const handleOverrideDepartment = (id: number, newDept: string) => {
+    const updated = [...allGrievances];
+    if (updated[id]) {
+      updated[id] = { ...updated[id], department: newDept };
+      setAllGrievances(updated);
+      if (userRole === 'department') applyFilters(updated, userDept || 'All', 'All');
+    }
   };
 
   const applyFilters = (grievances: any[], dept: string, sev: string) => {
@@ -166,67 +206,81 @@ export default function App() {
   };
 
   return (
-      <Layout 
+    <Layout 
       userRole={userRole} 
       userDept={userDept}
-      onLoginClick={() => setShowAuthModal(true)}
+      onLoginClick={() => navigate('/auth')}
       onLogout={handleLogout}
       language={language}
       onLanguageChange={setLanguage}
     >
-      {userRole === 'admin' || userRole === 'department' ? (
-        <AdminDashboard 
-          grievances={allGrievances} 
-          userDept={userDept} 
-          onFilterChange={(dept, sev) => applyFilters(allGrievances, dept, sev)}
-        />
-      ) : (
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-          <div>
-            <h1 className="font-headline-xl text-headline-xl text-on-surface tracking-tight mb-2">
-              <span className="gradient-text">Civic Grievance</span>
-            </h1>
-            <p className="text-body-lg text-on-surface-variant max-w-xl">
-              Report issues in your neighborhood directly to the responsible departments.
-            </p>
-          </div>
-          {!userRole && (
-            <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl font-bold border border-primary/20 text-sm">
-              Please login to submit a verified grievance.
-            </div>
-          )}
-        </section>
-      )}
+      <Routes>
+        {/* PUBLIC GATEWAY */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthPage onLoginSuccess={handleLoginSuccess} />} />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {(!userRole || userRole === 'user') && (
-          <GrievanceForm 
-            currentLocation={currentLocation}
-            onGetLocation={handleGetLocation}
-            isLocating={isLocating}
-            locationCaptured={locationCaptured}
-            onSuccess={handleGrievanceSuccess}
-            translations={uiTranslations[language]}
-          />
-        )}
-        
-        <div className="xl:col-span-2 flex flex-col gap-8">
-          <MapComponent 
-            currentLocation={currentLocation}
-            onLocationSelect={handleLocationSelect}
-            grievances={filteredGrievances}
-          />
-          {(!userRole || userRole === 'user') && (
-            <div className="bg-surface-container-lowest rounded-[2.5rem] shadow-sm border border-outline-variant/30 overflow-hidden">
-              <AIFormAssistantView language={language} />
-            </div>
-          )}
-        </div>
-      </div>
+        {/* PROTECTED ROUTES */}
+        <Route element={<ProtectedRoute allowedRoles={['user']} userRole={userRole} />}>
+          <Route path="/citizen" element={<CitizenPortal grievances={allGrievances} />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<CitizenDashboard />} />
+            <Route path="report" element={
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <GrievanceForm 
+                  currentLocation={currentLocation}
+                  onGetLocation={handleGetLocation}
+                  isLocating={isLocating}
+                  locationCaptured={locationCaptured}
+                  onSuccess={handleGrievanceSuccess}
+                  translations={uiTranslations[language]}
+                />
+                <div className="xl:col-span-2 flex flex-col gap-8">
+                  <MapComponent 
+                    currentLocation={currentLocation}
+                    onLocationSelect={handleLocationSelect}
+                    grievances={filteredGrievances}
+                  />
+                  <div className="bg-surface-container-lowest rounded-[2.5rem] shadow-sm border border-outline-variant/30 overflow-hidden">
+                    <AIFormAssistantView language={language} />
+                  </div>
+                </div>
+              </div>
+            } />
+            <Route path="issue/:id" element={<CitizenIssueDetail />} />
+          </Route>
+        </Route>
 
-      {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} />
-      )}
+        <Route element={<ProtectedRoute allowedRoles={['admin']} userRole={userRole} />}>
+          <Route path="/admin" element={
+            <AdminPortal 
+              grievances={allGrievances} 
+              onOverride={handleOverrideDepartment} 
+            />
+          }>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<AdminAnalytics />} />
+            <Route path="grievances" element={<AdminTable />} />
+            <Route path="users" element={<AdminUsers />} />
+          </Route>
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={['department']} userRole={userRole} />}>
+          <Route path="/department" element={
+            <DepartmentPortal 
+              grievances={filteredGrievances} 
+              onUpdateStatus={handleUpdateGrievanceStatus} 
+            />
+          }>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<DeptDashboard />} />
+            <Route path="map" element={<DeptMap />} />
+            <Route path="issue/:id" element={<ResolveIssue />} />
+          </Route>
+        </Route>
+
+        {/* CATCH ALL */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </Layout>
   );
 }

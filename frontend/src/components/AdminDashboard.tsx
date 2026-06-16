@@ -1,6 +1,22 @@
 import React, { useMemo } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+};
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -84,10 +100,10 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
       {/* Stat Cards */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-panel p-6 rounded-[2rem] hover-lift relative overflow-hidden group">
+        <motion.div variants={itemVariants} className="glass-panel p-6 rounded-[2rem] hover-lift relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <span className="material-symbols-outlined text-6xl text-primary" style={{ fontFamily: 'Material Symbols Outlined' }}>campaign</span>
           </div>
@@ -98,9 +114,9 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
           <div className="mt-6 w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-primary to-secondary w-full"></div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="glass-panel p-6 rounded-[2rem] hover-lift relative overflow-hidden group">
+        <motion.div variants={itemVariants} className="glass-panel p-6 rounded-[2rem] hover-lift relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <span className="material-symbols-outlined text-6xl text-secondary" style={{ fontFamily: 'Material Symbols Outlined' }}>verified</span>
           </div>
@@ -111,9 +127,9 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
           <div className="mt-6 w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
             <div className="h-full bg-secondary" style={{ width: `${total ? (resolved/total)*100 : 0}%` }}></div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="glass-panel p-6 rounded-[2rem] flex flex-col justify-between hover-lift relative overflow-hidden">
+        <motion.div variants={itemVariants} className="glass-panel p-6 rounded-[2rem] flex flex-col justify-between hover-lift relative overflow-hidden">
           <div>
             <h3 className="font-bold text-label-lg text-on-surface-variant mb-2">Quick Filters</h3>
             <div className="flex gap-2">
@@ -145,24 +161,24 @@ export function AdminDashboard({ grievances, userDept, onFilterChange }: AdminDa
           <div className="mt-4 text-xs text-on-surface-variant opacity-70">
             Applying these filters updates the map below in real-time.
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Analytics Charts */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="glass-panel p-6 rounded-[2rem]">
+        <motion.div variants={itemVariants} className="glass-panel p-6 rounded-[2rem]">
           <h3 className="font-headline-md text-headline-md mb-4">Department Breakdown</h3>
           <div className="h-64">
             <Pie data={pieData} options={chartOptions} />
           </div>
-        </div>
-        <div className="glass-panel p-6 rounded-[2rem]">
+        </motion.div>
+        <motion.div variants={itemVariants} className="glass-panel p-6 rounded-[2rem]">
           <h3 className="font-headline-md text-headline-md mb-4">Severity Distribution</h3>
           <div className="h-64">
             <Bar data={barData} options={barOptions} />
           </div>
-        </div>
+        </motion.div>
       </section>
-    </div>
+    </motion.div>
   );
 }

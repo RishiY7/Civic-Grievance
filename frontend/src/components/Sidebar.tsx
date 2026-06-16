@@ -1,4 +1,5 @@
-import { Activity, FileText, Users, Settings, Plus, LayoutDashboard } from 'lucide-react';
+import { Activity, FileText, Users, Settings, Plus, LayoutDashboard, Map as MapIcon } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface SidebarProps {
   userRole: string | null;
@@ -6,9 +7,20 @@ interface SidebarProps {
 }
 
 export function Sidebar({ userRole, userDept }: SidebarProps) {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   if (userRole !== 'admin' && userRole !== 'department') {
     return null; // Don't show sidebar for normal users to give them a wider view
   }
+
+  const getLinkClass = (path: string) => {
+    const isActive = currentPath.includes(path);
+    if (isActive) {
+      return "flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary/10 to-secondary/10 text-primary rounded-xl font-label-lg transition-all duration-300";
+    }
+    return "flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-lg transition-all duration-300";
+  };
 
   return (
     <aside className="hidden lg:flex flex-col p-4 gap-2 w-64 bg-white/40 backdrop-blur-2xl border-r border-white/30 sticky top-16 h-[calc(100vh-64px)] z-40">
@@ -25,24 +37,40 @@ export function Sidebar({ userRole, userDept }: SidebarProps) {
       </div>
       
       <nav className="space-y-1">
-        <a className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary/10 to-secondary/10 text-primary rounded-xl font-label-lg transition-all duration-300" href="#">
-          <LayoutDashboard size={20} />
-          Analytics
-        </a>
-        <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-lg transition-all duration-300" href="#">
-          <FileText size={20} />
-          Reports
-        </a>
         {userRole === 'admin' && (
           <>
-            <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-lg transition-all duration-300" href="#">
+            <div className="pt-4 pb-2 px-4">
+              <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Admin Controls</p>
+            </div>
+            <Link className={getLinkClass('dashboard')} to="/admin/dashboard">
+              <LayoutDashboard size={20} />
+              Analytics
+            </Link>
+            <Link className={getLinkClass('grievances')} to="/admin/grievances">
+              <FileText size={20} />
+              All Grievances
+            </Link>
+            <Link className={getLinkClass('users')} to="/admin/users">
               <Users size={20} />
-              Citizens
-            </a>
+              Department Users
+            </Link>
             <a className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl font-label-lg transition-all duration-300" href="#">
               <Settings size={20} />
-              Settings
+              Global Settings
             </a>
+          </>
+        )}
+        
+        {userRole === 'department' && (
+          <>
+            <Link className={getLinkClass('dashboard')} to={`/${userRole}/dashboard`}>
+              <LayoutDashboard size={20} />
+              Workflow Board
+            </Link>
+            <Link className={getLinkClass('map')} to={`/${userRole}/map`}>
+              <MapIcon size={20} />
+              Route Planning
+            </Link>
           </>
         )}
       </nav>
