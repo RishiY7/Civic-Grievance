@@ -2,13 +2,12 @@
 
 ## Overview
 
-The **Civic Grievance Triage System** is an AI-powered platform designed to streamline the reporting and routing of civic issues (e.g., potholes, broken streetlights, water leaks). Citizens can seamlessly report issues by uploading an image and providing an optional text or voice description in multiple languages (such as English, Hindi, or Kannada).
+The **Civic Grievance Triage System** is an AI-powered platform designed to streamline the reporting and routing of civic issues (e.g., potholes, broken streetlights, water leaks). Citizens can seamlessly report issues by uploading an image and providing an optional text or voice description in multiple languages (such as English, Kannada, or Hindi).
 
-The system leverages the multimodal capabilities of the **Google Gemini 2.5 Flash API** to:
-1. Translate and transcribe regional audio/text descriptions into English.
-2. Visually identify the core issue from the uploaded image.
-3. Assess the severity of the problem (Low, Medium, High, Critical).
-4. Automatically route the grievance to the appropriate civic department (Roads, Water, Sanitation, Electricity).
+The system leverages a multi-model AI pipeline to process these requests:
+1. **Sarvam AI (via NVIDIA API):** Translates regional text descriptions into English.
+2. **Custom Civic Model (YOLOv8):** Visually identifies the core issue from the uploaded image (e.g., potholes, garbage).
+3. **Google Gemini API:** Analyzes the combined data, assesses severity (Low, Medium, High, Critical), automatically routes the grievance to the appropriate civic department, and powers the multilingual Civic Assistant chatbot and dynamic UI translation.
 
 The reported grievances are then displayed on an interactive, color-coded map for easy tracking and resolution.
 
@@ -16,7 +15,10 @@ The reported grievances are then displayed on an interactive, color-coded map fo
 
 - **Backend Framework**: [FastAPI](https://fastapi.tiangolo.com/)
 - **Database**: PostgreSQL (via SQLAlchemy ORM)
-- **AI Integration**: Google Gemini 2.5 Flash API (Multimodal Image & Audio Analysis)
+- **AI Integration**: 
+  - **Sarvam AI (via NVIDIA API)**: Multilingual text translation
+  - **Custom YOLO Model (`civic_model.pt`)**: Civic issue object detection
+  - **Google Gemini**: Multimodal analysis, Chatbot, and UI Translations
 - **Frontend & Mapping**: React, Vite, Tailwind CSS, [React Leaflet](https://react-leaflet.js.org/)
 - **ASGI Server**: Uvicorn
 
@@ -37,6 +39,9 @@ Create a new file named `.env` in the root of the project directory and configur
 # PostgreSQL Database Connection String
 # Format: postgresql://username:password@host:port/database_name
 DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/civic_db
+
+# NVIDIA API Key (for Sarvam AI Translation)
+NVIDIA_API_KEY=your_nvidia_api_key_here
 
 # Google Gemini API Key
 GEMINI_API_KEY=your_actual_api_key_here

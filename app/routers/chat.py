@@ -6,7 +6,7 @@ from gtts import gTTS
 from google.genai import types
 
 from ..schemas import ChatRequest, TranslateRequest, TTSRequest
-from ..ai_utils import call_gemini_with_fallback
+from ..ai_utils import call_gemini_with_fallback, nvidia_client
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
@@ -49,21 +49,43 @@ async def translate_texts(request: TranslateRequest):
 
     prompt = f"""For each of the following strings (extracted from a form), provide:
 1. The English translation.
-2. The Hindi translation (common, everyday spoken language).
-3. The Kannada translation (common, everyday spoken language).
+2. The Kannada translation (common, everyday spoken language).
+3. The Hindi translation (common, everyday spoken language).
 
 Input JSON array: {json.dumps(uncached_texts)}
 
-Respond ONLY with a valid JSON array of objects, where each object has keys "english", "hindi", and "kannada". Do not include any explanations or markdown tags."""
+Respond ONLY with a valid JSON array of objects, where each object has keys "english", "kannada", and "hindi". Do not include any explanations or markdown tags."""
 
     try:
-        config = types.GenerateContentConfig(
-            system_instruction="You are a professional multilingual translator. You MUST output ONLY a valid JSON array of objects. Never include any conversational text.",
-            temperature=0.0
-        )
-        response = call_gemini_with_fallback([prompt], config)
+        system_instruction = "You are a professional multilingual translator. You MUST output ONLY a valid JSON array of objects. Never include any conversational text."
+        response_text = None
+
+        if nvidia_client:
+            try:
+                sarvam_prompt = f"{system_instruction}\n\n{prompt}"
+                completion = nvidia_client.chat.completions.create(
+                    model="sarvamai/sarvam-m",
+                    messages=[{"role":"user","content": sarvam_prompt}],
+                    temperature=0.0,
+                    top_p=1,
+                    max_tokens=4096,
+                    stream=False
+                )
+                response_text = completion.choices[0].message.content.strip()
+                if "</think>" in response_text:
+                    response_text = response_text.split("</think>")[-1].strip()
+            except Exception as e:
+                print(f"Sarvam JSON translation failed, falling back to Gemini. Error: {e}")
+                response_text = None
+
+        if not response_text:
+            config = types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                temperature=0.0
+            )
+            response = call_gemini_with_fallback([prompt], config)
+            response_text = response.text.strip()
         
-        response_text = response.text.strip()
         if response_text.startswith("```json"):
             response_text = response_text[7:]
         if response_text.startswith("```"):
@@ -114,7 +136,7 @@ Platform Knowledge:
 - The 4 active departments are: Roads, Water, Sanitation, and Electricity.
 
 CRITICAL: You MUST respond ENTIRELY and EXCLUSIVELY in {request.language}. 
-Do not use a single word of English if the language is Hindi or Kannada.
+Do not use a single word of English if the language is Kannada or Hindi.
 Use common, everyday spoken language that is easy for the general public to understand.
 All your explanations, guidance, and answers must be written in {request.language}.
 """
