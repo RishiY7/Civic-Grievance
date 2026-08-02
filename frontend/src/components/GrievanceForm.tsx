@@ -27,6 +27,7 @@ export function GrievanceForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -108,6 +109,7 @@ export function GrievanceForm({
       formRef.current.reset();
       setAudioBlob(null);
       setAudioUrl('');
+      setSelectedFile(null);
       
     } catch (error: any) {
       console.error("Submission failed:", error);
@@ -144,10 +146,26 @@ export function GrievanceForm({
               accept="image/*" 
               required
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setSelectedFile(e.target.files[0]);
+                } else {
+                  setSelectedFile(null);
+                }
+              }}
             />
-            <div className="flex flex-col items-center justify-center text-on-surface-variant">
-              <Upload size={24} className="mb-2 text-primary" />
-              <span className="text-sm"><BilingualText text="Click to upload or drag and drop" /></span>
+            <div className="flex flex-col items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+              {selectedFile ? (
+                <>
+                  <CheckCircle2 size={32} className="mb-2 text-secondary" />
+                  <span className="font-bold text-secondary">{selectedFile.name}</span>
+                </>
+              ) : (
+                <>
+                  <Upload size={24} className="mb-2 text-primary" />
+                  <span className="text-sm"><BilingualText text="Click to upload or drag and drop" /></span>
+                </>
+              )}
             </div>
           </div>
         </div>

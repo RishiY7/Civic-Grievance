@@ -18,7 +18,7 @@ export function ResolveIssue() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const grievanceId = parseInt(id || '0');
-  const grievance = grievances[grievanceId] || {
+  const grievance = grievances.find(g => g.id === grievanceId) || {
     id: grievanceId,
     status: 'Pending',
     original_text: 'There is a massive pothole causing traffic.',

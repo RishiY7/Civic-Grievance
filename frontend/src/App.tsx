@@ -160,6 +160,8 @@ export default function App() {
 
   const handleGrievanceSuccess = (data: any) => {
     const newGrievance = {
+      id: data.ai_analysis.id,
+      status: data.ai_analysis.status,
       latitude: data.coordinates.lat,
       longitude: data.coordinates.lng,
       severity: data.ai_analysis.severity,
@@ -177,8 +179,9 @@ export default function App() {
 
   const handleUpdateGrievanceStatus = (id: number, newStatus: string, proofPhoto?: string) => {
     const updated = [...allGrievances];
-    if (updated[id]) {
-      updated[id] = { ...updated[id], status: newStatus, proofPhoto };
+    const index = updated.findIndex(g => g.id === id);
+    if (index !== -1) {
+      updated[index] = { ...updated[index], status: newStatus, proofPhoto };
       setAllGrievances(updated);
       
       // Re-apply filters if department is viewing
@@ -190,8 +193,9 @@ export default function App() {
 
   const handleOverrideDepartment = (id: number, newDept: string) => {
     const updated = [...allGrievances];
-    if (updated[id]) {
-      updated[id] = { ...updated[id], department: newDept };
+    const index = updated.findIndex(g => g.id === id);
+    if (index !== -1) {
+      updated[index] = { ...updated[index], department: newDept };
       setAllGrievances(updated);
       if (userRole === 'department') applyFilters(updated, userDept || 'All', 'All');
     }

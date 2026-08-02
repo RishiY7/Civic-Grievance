@@ -59,11 +59,9 @@ export function DeptDashboard() {
   const { grievances } = useOutletContext<DeptContext>();
   const navigate = useNavigate();
 
-  // Again, faking status and IDs since backend isn't persisting status yet
-  const boardData = grievances.map((g, i) => ({
+  const boardData = grievances.map(g => ({
     ...g,
-    id: i,
-    status: g.status || (Math.random() > 0.7 ? 'Resolved' : Math.random() > 0.4 ? 'In-Progress' : 'Pending')
+    status: g.status || 'Pending'
   }));
 
   const pending = boardData.filter(g => g.status === 'Pending');

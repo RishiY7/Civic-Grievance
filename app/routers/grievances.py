@@ -148,8 +148,8 @@ async def submit_grievance(
                     break 
         
         db_user_id = None
-        if current_user and current_user.get("role") == "user":
-            u = db.query(User).filter(User.username == current_user.get("username")).first()
+        if current_user and current_user.get("role") == "citizen":
+            u = db.query(User).filter(User.email == current_user.get("username")).first()
             if u:
                 db_user_id = u.id
 
@@ -175,6 +175,9 @@ async def submit_grievance(
         ai_analysis["is_duplicate"] = is_duplicate
         if is_duplicate:
             ai_analysis["duplicate_warning"] = f"Flagged as a duplicate of Ticket #{parent_id}."
+            
+        ai_analysis["id"] = new_grievance.id
+        ai_analysis["status"] = new_grievance.status
 
         return {
             "ai_analysis": ai_analysis,
@@ -212,7 +215,8 @@ async def get_grievances(current_user: Optional[dict] = Depends(get_optional_use
             "longitude": g.longitude,
             "image_path": g.image_path,
             "is_duplicate": g.is_duplicate,
-            "parent_id": g.parent_id
+            "parent_id": g.parent_id,
+            "status": g.status
         }
         for g in grievances
     ]
