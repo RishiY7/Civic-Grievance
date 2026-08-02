@@ -13,10 +13,12 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (isLogin) {
       try {
@@ -48,7 +50,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
           })
         });
         if (res.ok) {
-          alert('Signup successful! Please log in.');
+          setSuccess('Signup successful! Please log in.');
           setIsLogin(true);
         } else {
           setError('Signup failed. Email may already exist or format is invalid.');
@@ -84,13 +86,13 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         <div className="flex border-b border-outline-variant/30 mb-6">
           <button
             className={`flex-1 py-2 font-bold text-sm transition-colors ${isLogin ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant'}`}
-            onClick={() => { setIsLogin(true); setError(''); }}
+            onClick={() => { setIsLogin(true); setError(''); setSuccess(''); }}
           >
             <BilingualText text="Login" />
           </button>
           <button
             className={`flex-1 py-2 font-bold text-sm transition-colors ${!isLogin ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant'}`}
-            onClick={() => { setIsLogin(false); setError(''); }}
+            onClick={() => { setIsLogin(false); setError(''); setSuccess(''); }}
           >
             <BilingualText text="Sign Up" />
           </button>
@@ -135,6 +137,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
           </div>
 
           {error && <div className="text-error text-sm font-bold text-center bg-error/10 py-2 rounded-lg">{error}</div>}
+          {success && <div className="text-primary text-sm font-bold text-center bg-primary/10 py-2 rounded-lg">{success}</div>}
 
           <button 
             type="submit"
