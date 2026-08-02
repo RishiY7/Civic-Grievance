@@ -172,7 +172,7 @@ export default function App() {
     };
     const updated = [...allGrievances, newGrievance];
     setAllGrievances(updated);
-    if (!userRole || userRole === 'user') setFilteredGrievances(updated);
+    if (!userRole || userRole === 'citizen') setFilteredGrievances(updated);
   };
 
   const handleUpdateGrievanceStatus = (id: number, newStatus: string, proofPhoto?: string) => {
@@ -220,7 +220,7 @@ export default function App() {
           <Route path="/auth" element={<AuthPage onLoginSuccess={handleLoginSuccess} />} />
 
           {/* PROTECTED ROUTES */}
-          <Route element={<ProtectedRoute allowedRoles={['user']} userRole={userRole} />}>
+          <Route element={<ProtectedRoute allowedRoles={['citizen']} userRole={userRole} />}>
             <Route path="/citizen" element={<CitizenPortal grievances={allGrievances} />}>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<CitizenDashboard />} />

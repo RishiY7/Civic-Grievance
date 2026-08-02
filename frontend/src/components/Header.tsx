@@ -17,7 +17,7 @@ export function Header({ userRole, onLoginClick, onLogout }: HeaderProps) {
   const handleHomeClick = () => {
     if (userRole === 'admin') navigate('/admin');
     else if (userRole === 'department') navigate('/department');
-    else if (userRole === 'user') navigate('/citizen');
+    else if (userRole === 'citizen') navigate('/citizen');
     else navigate('/');
   };
 

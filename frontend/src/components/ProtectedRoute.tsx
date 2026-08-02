@@ -18,7 +18,7 @@ export function ProtectedRoute({ allowedRoles, userRole }: ProtectedRouteProps) 
     // Determine where to send them based on their actual role
     if (userRole === 'admin') return <Navigate to="/admin" replace />;
     if (userRole === 'department') return <Navigate to="/department" replace />;
-    if (userRole === 'user') return <Navigate to="/citizen" replace />;
+    if (userRole === 'citizen') return <Navigate to="/citizen" replace />;
     
     // Fallback if role is garbled
     return <Navigate to="/auth" replace />;
