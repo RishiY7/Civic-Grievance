@@ -60,7 +60,18 @@ export const translations: Record<string, Record<string, string>> = {
     "View City Heatmap": "View City Heatmap / शहर का हीटमैप देखें",
     "City Activity Heatmap": "City Activity Heatmap / शहर गतिविधि हीटमैप",
     "Live map of successfully resolved issues across the city. Transparency builds trust.": "Live map of successfully resolved issues across the city. Transparency builds trust. / शहर भर में सफलतापूर्वक हल किए गए मुद्दों का लाइव मानचित्र। पारदर्शिता विश्वास बनाती है।",
-    "Resolved Today": "Resolved Today / आज हल हुए"
+    "Resolved Today": "Resolved Today / आज हल हुए",
+    "Report Issue": "Report Issue / समस्या की रिपोर्ट करें",
+    "My Dashboard": "My Dashboard / मेरा डैशबोर्ड",
+    "Click to upload or drag and drop": "Click to upload or drag and drop / अपलोड करने के लिए क्लिक करें या खींचें",
+    "Submission Successful": "Submission Successful / सबमिशन सफल रहा",
+    "AI Analysis Result": "AI Analysis Result / AI विश्लेषण परिणाम",
+    "Severity:": "Severity: / गंभीरता:",
+    "Department:": "Department: / विभाग:",
+    "Visual Issue:": "Visual Issue: / दृश्य समस्या:",
+    "Original:": "Original: / मूल:",
+    "Translated:": "Translated: / अनुवादित:",
+    "Submit Another": "Submit Another / एक और सबमिट करें"
   },
   "Kannada": {
     "Analyzing Document...": "Analyzing Document... / ದಾಖಲೆಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
@@ -100,6 +111,17 @@ export const translations: Record<string, Record<string, string>> = {
     "View City Heatmap": "View City Heatmap / ಸಿಟಿ ಹೀಟ್‌ಮ್ಯಾಪ್ ವೀಕ್ಷಿಸಿ",
     "City Activity Heatmap": "City Activity Heatmap / ನಗರ ಚಟುವಟಿಕೆ ಹೀಟ್‌ಮ್ಯಾಪ್",
     "Live map of successfully resolved issues across the city. Transparency builds trust.": "Live map of successfully resolved issues across the city. Transparency builds trust. / ನಗರದಾದ್ಯಂತ ಯಶಸ್ವಿಯಾಗಿ ಬಗೆಹರಿಸಲಾದ ಸಮಸ್ಯೆಗಳ ಲೈವ್ ನಕ್ಷೆ. ಪಾರದರ್ಶಕತೆ ವಿಶ್ವಾಸವನ್ನು ಮೂಡಿಸುತ್ತದೆ.",
-    "Resolved Today": "Resolved Today / ಇಂದು ಬಗೆಹರಿಸಲಾಗಿದೆ"
+    "Resolved Today": "Resolved Today / ಇಂದು ಬಗೆಹರಿಸಲಾಗಿದೆ",
+    "Report Issue": "Report Issue / ಸಮಸ್ಯೆಯನ್ನು ವರದಿ ಮಾಡಿ",
+    "My Dashboard": "My Dashboard / ನನ್ನ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    "Click to upload or drag and drop": "Click to upload or drag and drop / ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಎಳೆಯಿರಿ",
+    "Submission Successful": "Submission Successful / ಸಲ್ಲಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ",
+    "AI Analysis Result": "AI Analysis Result / AI ವಿಶ್ಲೇಷಣೆ ಫಲಿತಾಂಶ",
+    "Severity:": "Severity: / ತೀವ್ರತೆ:",
+    "Department:": "Department: / ಇಲಾಖೆ:",
+    "Visual Issue:": "Visual Issue: / ದೃಶ್ಯ ಸಮಸ್ಯೆ:",
+    "Original:": "Original: / ಮೂಲ:",
+    "Translated:": "Translated: / ಅನುವಾದಿಸಲಾಗಿದೆ:",
+    "Submit Another": "Submit Another / ಮತ್ತೊಂದನ್ನು ಸಲ್ಲಿಸಿ"
   }
 };

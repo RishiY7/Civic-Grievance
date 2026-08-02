@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useLanguage } from './context/LanguageContext';
 import { AnimatePresence } from 'framer-motion';
 import { Layout } from './components/Layout';
 import { MapComponent } from './components/MapComponent';
@@ -79,7 +80,14 @@ export default function App() {
   const location = useLocation();
   const [userRole, setUserRole] = useState<string | null>(localStorage.getItem('userRole'));
   const [userDept, setUserDept] = useState<string | null>(localStorage.getItem('userDept'));
-  const [language] = useState('en');
+  const { language: contextLang } = useLanguage();
+  
+  const langMap: Record<string, string> = {
+    'English': 'en',
+    'Kannada': 'kn',
+    'Hindi': 'hi'
+  };
+  const language = langMap[contextLang] || 'en';
   
   const [allGrievances, setAllGrievances] = useState<any[]>([]);
   const [filteredGrievances, setFilteredGrievances] = useState<any[]>([]);
