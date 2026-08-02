@@ -1,6 +1,7 @@
 import { Search, Bell, LogOut, LogIn } from 'lucide-react';
 import { BilingualText } from './BilingualText';
 import { useLanguage } from '../context/LanguageContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface HeaderProps {
   userRole: string | null;
@@ -10,6 +11,31 @@ interface HeaderProps {
 
 export function Header({ userRole, onLoginClick, onLogout }: HeaderProps) {
   const { language, setLanguage } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleHomeClick = () => {
+    if (userRole === 'admin') navigate('/admin');
+    else if (userRole === 'department') navigate('/department');
+    else if (userRole === 'user') navigate('/citizen');
+    else navigate('/');
+  };
+
+  const handleMapClick = () => {
+    if (userRole === 'department') {
+      navigate('/department/map');
+    } else {
+      if (location.pathname === '/') {
+        document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        navigate('/');
+        setTimeout(() => {
+          document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-[0_4px_30px_rgba(0,88,188,0.05)]">
       <div className="flex items-center gap-8">
@@ -17,12 +43,18 @@ export function Header({ userRole, onLoginClick, onLogout }: HeaderProps) {
           Civic Grievance
         </span>
         <nav className="hidden lg:flex items-center gap-6">
-          <a className="text-primary font-bold border-b-2 border-primary py-5 font-body-lg text-body-lg" href="#">
+          <button 
+            onClick={handleHomeClick}
+            className="text-primary font-bold border-b-2 border-primary py-5 font-body-lg text-body-lg"
+          >
             {userRole === 'admin' || userRole === 'department' ? <BilingualText text="Dashboard" /> : <BilingualText text="Home" />}
-          </a>
-          <a className="text-on-surface-variant opacity-80 hover:text-primary transition-colors duration-200 font-body-lg text-body-lg" href="#">
+          </button>
+          <button 
+            onClick={handleMapClick}
+            className="text-on-surface-variant opacity-80 hover:text-primary transition-colors duration-200 font-body-lg text-body-lg"
+          >
             <BilingualText text="Map" />
-          </a>
+          </button>
         </nav>
       </div>
       
