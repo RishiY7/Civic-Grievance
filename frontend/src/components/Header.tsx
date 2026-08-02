@@ -24,6 +24,8 @@ export function Header({ userRole, onLoginClick, onLogout }: HeaderProps) {
   const handleMapClick = () => {
     if (userRole === 'department') {
       navigate('/department/map');
+    } else if (userRole === 'citizen') {
+      navigate('/citizen/report');
     } else {
       if (location.pathname === '/') {
         document.getElementById('map-section')?.scrollIntoView({ behavior: 'smooth' });
