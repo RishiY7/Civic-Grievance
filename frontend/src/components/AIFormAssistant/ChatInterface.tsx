@@ -38,12 +38,13 @@ export function ChatInterface({ language, setLanguage }: ChatInterfaceProps) {
     const cleanText = text.replace(/[*_#`]/g, '').trim();
     if (!cleanText) return;
 
-    if (language === 'Kannada') {
+    if (language === 'Kannada' || language === 'Hindi') {
       try {
-        const response = await axios.post('http://localhost:8000/api/tts', { text: cleanText, lang: 'kn' }, { responseType: 'blob' });
+        const langCode = language === 'Kannada' ? 'kn' : 'hi';
+        const response = await axios.post('http://localhost:8000/api/tts', { text: cleanText, lang: langCode }, { responseType: 'blob' });
         const audioUrl = URL.createObjectURL(response.data);
         const audio = new Audio(audioUrl);
-        audio.play();
+        await audio.play().catch(e => console.error("Audio playback blocked or failed:", e));
         return;
       } catch (error) {
         console.error("Cloud TTS failed, falling back to browser.", error);
