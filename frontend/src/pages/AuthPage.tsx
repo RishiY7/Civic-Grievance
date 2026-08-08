@@ -3,7 +3,7 @@ import { AuthModal } from '../components/AuthModal';
 import { BilingualText } from '../components/BilingualText';
 import { PageTransition } from '../components/Effects/PageTransition';
 
-export function AuthPage({ onLoginSuccess }: { onLoginSuccess: (token: string, role: string, dept: string | null) => void }) {
+export function AuthPage({ onLoginSuccess }: { onLoginSuccess: (token: string, role: string, dept: string | null, email: string) => void }) {
   const navigate = useNavigate();
 
   return (

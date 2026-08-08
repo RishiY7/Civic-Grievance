@@ -4,13 +4,16 @@ import { Clock, CheckCircle, Wrench, ChevronRight } from 'lucide-react';
 import Tilt from 'react-parallax-tilt';
 import { BilingualText } from '../../components/BilingualText';
 
-interface DashboardContext {
+interface CitizenContext {
   grievances: any[];
 }
 
 export function CitizenDashboard() {
-  const { grievances } = useOutletContext<DashboardContext>();
+  const { grievances } = useOutletContext<CitizenContext>();
   const navigate = useNavigate();
+  const userEmail = localStorage.getItem('userEmail');
+
+  const myGrievances = grievances.filter(g => g.citizen_email === userEmail);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -38,13 +41,7 @@ export function CitizenDashboard() {
     }
   };
 
-  // Give them a fake status if they don't have one from backend yet
-  const displayGrievances = grievances.map((g, i) => ({
-    ...g,
-    id: i, // temporary id until backend returns one
-    status: Math.random() > 0.6 ? 'Resolved' : Math.random() > 0.3 ? 'In-Progress' : 'Pending',
-    date: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString()
-  })).sort((a, b) => b.id - a.id); // Show newest first
+  const displayGrievances = myGrievances.sort((a, b) => b.id - a.id);
 
   return (
     <div className="space-y-6">

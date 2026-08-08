@@ -4,7 +4,7 @@ import { BilingualText } from './BilingualText';
 
 interface AuthModalProps {
   onClose: () => void;
-  onLoginSuccess: (token: string, role: string, dept: string | null) => void;
+  onLoginSuccess: (token: string, role: string, dept: string | null, email: string) => void;
 }
 
 export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
@@ -30,7 +30,7 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
         const res = await fetch('http://localhost:8000/token', { method: 'POST', body: formData });
         if (res.ok) {
           const data = await res.json();
-          onLoginSuccess(data.access_token, data.role, data.department);
+          onLoginSuccess(data.access_token, data.role, data.department, data.email);
         } else {
           setError('Incorrect email or password');
         }

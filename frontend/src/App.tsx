@@ -121,9 +121,10 @@ export default function App() {
     }
   };
 
-  const handleLoginSuccess = (token: string, role: string, dept: string | null) => {
+  const handleLoginSuccess = (token: string, role: string, dept: string | null, email: string) => {
     localStorage.setItem('adminToken', token);
     localStorage.setItem('userRole', role);
+    localStorage.setItem('userEmail', email);
     if (dept) localStorage.setItem('userDept', dept);
     
     setUserRole(role);
@@ -138,6 +139,7 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('userEmail');
     localStorage.removeItem('userDept');
     setUserRole(null);
     setUserDept(null);
