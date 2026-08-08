@@ -38,10 +38,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         )
 
     # 3. Bake the role and department right into the JWT Token!
+    role_value = "department" if user.role == UserRole.department_official else user.role.value
     access_token = create_access_token(
         data={
             "sub": user.email, 
-            "role": user.role.value, 
+            "role": role_value, 
             "department": user.department
         }
     )
@@ -50,6 +51,6 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {
         "access_token": access_token, 
         "token_type": "bearer",
-        "role": user.role.value,
+        "role": role_value,
         "department": user.department
     }
