@@ -40,15 +40,36 @@ export function AdminTable() {
           <p className="text-on-surface-variant"><BilingualText text="Global view of all issues. Manually reassign misclassified items here." /></p>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
-          <input 
-            type="text" 
-            placeholder="Search issues..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary w-64"
-          />
+        <div className="flex gap-4 items-center">
+          <button 
+            onClick={async () => {
+              const res = await fetch('http://localhost:8000/grievances/run-sla-escalation', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+              });
+              const data = await res.json();
+              if (res.ok) {
+                alert(data.message);
+                window.location.reload(); // Quick refresh to show new severities
+              } else {
+                alert(data.detail || "Error running SLA check");
+              }
+            }}
+            className="px-4 py-2 bg-warning/10 text-warning border border-warning/30 rounded-xl font-bold text-sm hover:bg-warning/20 transition-colors"
+          >
+            <BilingualText text="Run SLA Check (Batch Escalate)" />
+          </button>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" size={20} />
+            <input 
+              type="text" 
+              placeholder="Search issues..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary w-64"
+            />
+          </div>
         </div>
       </div>
 

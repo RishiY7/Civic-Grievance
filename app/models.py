@@ -1,5 +1,6 @@
 import enum
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Enum, DateTime
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from .database import Base, engine
 
@@ -21,6 +22,7 @@ class Grievance(Base):
     citizen_email = Column(String, nullable=True) 
     status = Column(String, default="Pending")
     proof_image_path = Column(String, nullable=True)
+    created_at = Column(DateTime, default=func.now())
     
     # Duplicate Detection
     is_duplicate = Column(Boolean, default=False)

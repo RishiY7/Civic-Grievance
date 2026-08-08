@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, Tag, AlertTriangle, Calendar, Building, CheckCircle, Wrench, Clock, Camera } from 'lucide-react';
+import { ArrowLeft, MapPin, Tag, AlertTriangle, Calendar, Building, CheckCircle, Wrench, Clock, Camera, X } from 'lucide-react';
 import { BilingualText } from '../../components/BilingualText';
 
 interface DashboardContext {
@@ -124,11 +124,56 @@ export function IssueDetail() {
                 <Camera size={20} /> <BilingualText text="Resolution Proof" />
               </h2>
               <div className="aspect-video bg-surface-container rounded-2xl border border-outline-variant/30 flex items-center justify-center relative overflow-hidden">
-                {/* Placeholder for resolution photo */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-secondary/10 to-primary/10 mix-blend-multiply"></div>
-                <p className="text-on-surface-variant font-bold z-10 flex items-center gap-2">
-                  <CheckCircle size={18} /> <BilingualText text="Verified by Department" />
-                </p>
+                {/* Proof photo from backend if available */}
+                {grievance.proof_image_path ? (
+                  <img src={`http://localhost:8000${grievance.proof_image_path}`} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-tr from-secondary/10 to-primary/10 mix-blend-multiply"></div>
+                )}
+                <div className="bg-white/80 backdrop-blur px-4 py-2 rounded-full shadow-lg z-10">
+                  <p className="text-secondary font-bold flex items-center gap-2 text-sm">
+                    <CheckCircle size={16} /> <BilingualText text="Verified by Department" />
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {grievance.status === 'Resolved' && (
+            <div className="glass-panel p-8 rounded-[2.5rem] border border-primary/20 relative overflow-hidden mt-6">
+              <h2 className="text-xl font-bold mb-2 flex items-center gap-2 text-primary">
+                <CheckCircle size={20} /> <BilingualText text="Citizen Verification" />
+              </h2>
+              <p className="text-on-surface-variant mb-6 text-sm">
+                <BilingualText text="The department marked this as resolved. Is the issue actually fixed?" />
+              </p>
+              <div className="flex gap-4">
+                <button 
+                  onClick={async () => {
+                    if(!confirm("Are you sure you want to verify this fix? The issue will be permanently closed.")) return;
+                    const fd = new FormData(); fd.append("action", "verify");
+                    const res = await fetch(`http://localhost:8000/grievances/${grievance.id}/citizen-feedback`, {
+                      method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }, body: fd
+                    });
+                    if (res.ok) window.location.reload(); else alert("Error verifying issue");
+                  }}
+                  className="flex-1 bg-secondary/10 text-secondary border border-secondary/30 py-3 rounded-xl font-bold hover:bg-secondary/20 transition-all flex justify-center items-center gap-2"
+                >
+                  <CheckCircle size={18} /> <BilingualText text="Verify Fix" />
+                </button>
+                <button 
+                  onClick={async () => {
+                    if(!confirm("Are you sure you want to re-open this issue?")) return;
+                    const fd = new FormData(); fd.append("action", "reopen");
+                    const res = await fetch(`http://localhost:8000/grievances/${grievance.id}/citizen-feedback`, {
+                      method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }, body: fd
+                    });
+                    if (res.ok) window.location.reload(); else alert("Error re-opening issue");
+                  }}
+                  className="flex-1 bg-error/10 text-error border border-error/30 py-3 rounded-xl font-bold hover:bg-error/20 transition-all flex justify-center items-center gap-2"
+                >
+                  <X size={18} /> <BilingualText text="Re-open Issue" />
+                </button>
               </div>
             </div>
           )}

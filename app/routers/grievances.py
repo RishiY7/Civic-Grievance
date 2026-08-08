@@ -228,11 +228,18 @@ async def update_grievance_status(
     grievance_id: int,
     status: str = Form(...),
     proof_file: Optional[UploadFile] = File(None),
+    current_user: Optional[dict] = Depends(get_optional_user_token),
     db: Session = Depends(get_db)
 ):
+    if not current_user or current_user.get("role") not in ["admin", "department"]:
+        raise HTTPException(status_code=403, detail="Not authorized to change status")
+
     grievance = db.query(Grievance).filter(Grievance.id == grievance_id).first()
     if not grievance:
         raise HTTPException(status_code=404, detail="Grievance not found")
+    
+    if grievance.status == "Resolved" and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Cannot change status of a resolved grievance")
     
     grievance.status = status
     
@@ -259,8 +266,12 @@ async def update_grievance_status(
 async def override_department(
     grievance_id: int,
     department: str = Form(...),
+    current_user: Optional[dict] = Depends(get_optional_user_token),
     db: Session = Depends(get_db)
 ):
+    if not current_user or current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can override department")
+
     grievance = db.query(Grievance).filter(Grievance.id == grievance_id).first()
     if not grievance:
         raise HTTPException(status_code=404, detail="Grievance not found")
@@ -269,6 +280,42 @@ async def override_department(
     db.commit()
     db.refresh(grievance)
     return {"message": "Department updated successfully", "id": grievance.id, "department": grievance.department}
+
+@router.post("/grievances/run-sla-escalation")
+async def run_sla_escalation(
+    current_user: Optional[dict] = Depends(get_optional_user_token),
+    db: Session = Depends(get_db)
+):
+    if not current_user or current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can trigger SLA check")
+
+    from datetime import datetime, timedelta
+    
+    # Define SLA threshold (2 minutes for demo)
+    threshold = datetime.utcnow() - timedelta(minutes=2)
+    
+    pending_issues = db.query(Grievance).filter(
+        Grievance.status == "Pending",
+        Grievance.created_at <= threshold
+    ).all()
+    
+    escalated_count = 0
+    severity_order = ["Low", "Medium", "High", "Critical"]
+    
+    for g in pending_issues:
+        current_sev = g.severity or "Low"
+        try:
+            current_idx = severity_order.index(current_sev)
+            if current_idx < len(severity_order) - 1:
+                g.severity = severity_order[current_idx + 1]
+                escalated_count += 1
+        except ValueError:
+            g.severity = "Medium"
+            escalated_count += 1
+            
+    db.commit()
+    
+    return {"message": f"SLA Check complete. Escalated {escalated_count} issues.", "escalated_count": escalated_count}
 
 @router.post("/directives")
 def create_directive(
@@ -310,4 +357,31 @@ def create_directive(
         "is_duplicate": False
     }
 
+@router.post("/grievances/{grievance_id}/citizen-feedback")
+async def citizen_feedback(
+    grievance_id: int,
+    action: str = Form(...),
+    current_user: Optional[dict] = Depends(get_optional_user_token),
+    db: Session = Depends(get_db)
+):
+    if not current_user or current_user.get("role") != "citizen":
+        raise HTTPException(status_code=403, detail="Only citizens can provide feedback")
 
+    grievance = db.query(Grievance).filter(Grievance.id == grievance_id).first()
+    if not grievance:
+        raise HTTPException(status_code=404, detail="Grievance not found")
+        
+    if grievance.status != "Resolved":
+        raise HTTPException(status_code=400, detail="Grievance must be Resolved to provide feedback")
+        
+    if action == "verify":
+        grievance.status = "Closed" # Final locked state
+    elif action == "reopen":
+        grievance.status = "In-Progress" # Send it back to the department
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action. Must be 'verify' or 'reopen'.")
+        
+    db.commit()
+    db.refresh(grievance)
+    
+    return {"message": f"Issue {action}ed successfully", "status": grievance.status}

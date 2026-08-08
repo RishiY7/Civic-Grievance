@@ -32,8 +32,16 @@ export const translations: Record<string, Record<string, string>> = {
     "In Progress": "In Progress",
     "Resolved": "Resolved",
     "No issues": "No issues",
+    "In Progress": "In Progress",
+    "Resolved": "Resolved",
+    "No issues": "No issues",
     "Notifications": "Notifications",
-    "No new updates at this time.": "No new updates at this time."
+    "No new updates at this time.": "No new updates at this time.",
+    "Run SLA Check (Batch Escalate)": "Run SLA Check (Batch Escalate)",
+    "Citizen Verification": "Citizen Verification",
+    "The department marked this as resolved. Is the issue actually fixed?": "The department marked this as resolved. Is the issue actually fixed?",
+    "Verify Fix": "Verify Fix",
+    "Re-open Issue": "Re-open Issue"
   },
   "Hindi": {
     "Analyzing Document...": "Analyzing Document... / दस्तावेज़ की जाँच हो रही है...",
@@ -96,8 +104,16 @@ export const translations: Record<string, Record<string, string>> = {
     "In Progress": "In Progress / प्रगति पर है",
     "Resolved": "Resolved / हल किया गया",
     "No issues": "No issues / कोई समस्या नहीं",
+    "In Progress": "In Progress / प्रगति पर है",
+    "Resolved": "Resolved / हल किया गया",
+    "No issues": "No issues / कोई समस्या नहीं",
     "Notifications": "Notifications / सूचनाएं",
-    "No new updates at this time.": "No new updates at this time. / इस समय कोई नया अपडेट नहीं है।"
+    "No new updates at this time.": "No new updates at this time. / इस समय कोई नया अपडेट नहीं है।",
+    "Run SLA Check (Batch Escalate)": "Run SLA Check (Batch Escalate) / SLA चेक चलाएँ",
+    "Citizen Verification": "Citizen Verification / नागरिक सत्यापन",
+    "The department marked this as resolved. Is the issue actually fixed?": "The department marked this as resolved. Is the issue actually fixed? / विभाग ने इसे हल के रूप में चिह्नित किया है। क्या समस्या वास्तव में ठीक हो गई है?",
+    "Verify Fix": "Verify Fix / समाधान सत्यापित करें",
+    "Re-open Issue": "Re-open Issue / समस्या को फिर से खोलें"
   },
   "Kannada": {
     "Analyzing Document...": "Analyzing Document... / ದಾಖಲೆಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
@@ -160,7 +176,15 @@ export const translations: Record<string, Record<string, string>> = {
     "In Progress": "In Progress / ಪ್ರಗತಿಯಲ್ಲಿದೆ",
     "Resolved": "Resolved / ಪರಿಹರಿಸಲಾಗಿದೆ",
     "No issues": "No issues / ಯಾವುದೇ ಸಮಸ್ಯೆಗಳಿಲ್ಲ",
+    "In Progress": "In Progress / ಪ್ರಗತಿಯಲ್ಲಿದೆ",
+    "Resolved": "Resolved / ಪರಿಹರಿಸಲಾಗಿದೆ",
+    "No issues": "No issues / ಯಾವುದೇ ಸಮಸ್ಯೆಗಳಿಲ್ಲ",
     "Notifications": "Notifications / ಅಧಿಸೂಚನೆಗಳು",
-    "No new updates at this time.": "No new updates at this time. / ಈ ಸಮಯದಲ್ಲಿ ಯಾವುದೇ ಹೊಸ ನವೀಕರಣಗಳಿಲ್ಲ."
+    "No new updates at this time.": "No new updates at this time. / ಈ ಸಮಯದಲ್ಲಿ ಯಾವುದೇ ಹೊಸ ನವೀಕರಣಗಳಿಲ್ಲ.",
+    "Run SLA Check (Batch Escalate)": "Run SLA Check (Batch Escalate) / SLA ಪರಿಶೀಲಿಸಿ",
+    "Citizen Verification": "Citizen Verification / ನಾಗರಿಕರ ಪರಿಶೀಲನೆ",
+    "The department marked this as resolved. Is the issue actually fixed?": "The department marked this as resolved. Is the issue actually fixed? / ಇಲಾಖೆ ಇದನ್ನು ಪರಿಹರಿಸಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿದೆ. ಸಮಸ್ಯೆ ನಿಜವಾಗಿಯೂ ಬಗೆಹರಿದಿದೆಯೇ?",
+    "Verify Fix": "Verify Fix / ಪರಿಹಾರವನ್ನು ಪರಿಶೀಲಿಸಿ",
+    "Re-open Issue": "Re-open Issue / ಸಮಸ್ಯೆಯನ್ನು ಮತ್ತೆ ತೆರೆಯಿರಿ"
   }
 };
