@@ -11,7 +11,7 @@ from ultralytics import YOLO
 
 from ..database import get_db
 from ..models import Grievance, User
-from ..schemas import GrievanceAnalysis
+from ..schemas import GrievanceAnalysis, DirectiveCreate
 from ..security import get_optional_user_token
 from ..ai_utils import call_gemini_with_fallback, translate_with_sarvam
 
@@ -214,9 +214,100 @@ async def get_grievances(current_user: Optional[dict] = Depends(get_optional_use
             "latitude": g.latitude,
             "longitude": g.longitude,
             "image_path": g.image_path,
+            "proof_image_path": g.proof_image_path,
             "is_duplicate": g.is_duplicate,
             "parent_id": g.parent_id,
             "status": g.status
         }
         for g in grievances
     ]
+
+@router.patch("/grievances/{grievance_id}/status")
+@router.post("/grievances/{grievance_id}/status")
+async def update_grievance_status(
+    grievance_id: int,
+    status: str = Form(...),
+    proof_file: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db)
+):
+    grievance = db.query(Grievance).filter(Grievance.id == grievance_id).first()
+    if not grievance:
+        raise HTTPException(status_code=404, detail="Grievance not found")
+    
+    grievance.status = status
+    
+    if proof_file and proof_file.filename:
+        unique_filename = f"proof_{uuid.uuid4()}_{proof_file.filename}"
+        proof_path = f"static/uploads/{unique_filename}"
+        os.makedirs("static/uploads", exist_ok=True)
+        with open(proof_path, "wb") as buffer:
+            shutil.copyfileobj(proof_file.file, buffer)
+        grievance.proof_image_path = f"/static/uploads/{unique_filename}"
+        
+    db.commit()
+    db.refresh(grievance)
+    
+    return {
+        "message": "Status updated successfully",
+        "id": grievance.id,
+        "status": grievance.status,
+        "proof_image_path": grievance.proof_image_path
+    }
+
+@router.patch("/grievances/{grievance_id}/override-department")
+@router.post("/grievances/{grievance_id}/override-department")
+async def override_department(
+    grievance_id: int,
+    department: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    grievance = db.query(Grievance).filter(Grievance.id == grievance_id).first()
+    if not grievance:
+        raise HTTPException(status_code=404, detail="Grievance not found")
+    
+    grievance.department = department
+    db.commit()
+    db.refresh(grievance)
+    return {"message": "Department updated successfully", "id": grievance.id, "department": grievance.department}
+
+@router.post("/directives")
+def create_directive(
+    directive: DirectiveCreate,
+    current_user: Optional[dict] = Depends(get_optional_user_token),
+    db: Session = Depends(get_db)
+):
+    dept = directive.department
+    if current_user and current_user.get("role") == "department" and current_user.get("department"):
+        dept = current_user.get("department")
+
+    db_grievance = Grievance(
+        original_text=f"[DIRECTIVE] {directive.title}: {directive.description}",
+        translated_text=f"[DIRECTIVE] {directive.title}: {directive.description}",
+        visual_issue=f"⚡ Directive: {directive.title}",
+        image_description="Official directive issued by administration",
+        department=dept,
+        severity=directive.severity,
+        latitude=directive.latitude,
+        longitude=directive.longitude,
+        status="Pending",
+        is_duplicate=False
+    )
+    db.add(db_grievance)
+    db.commit()
+    db.refresh(db_grievance)
+    return {
+        "id": db_grievance.id,
+        "title": directive.title,
+        "department": db_grievance.department,
+        "severity": db_grievance.severity,
+        "status": db_grievance.status,
+        "original_text": db_grievance.original_text,
+        "translated_text": db_grievance.translated_text,
+        "visual_issue": db_grievance.visual_issue,
+        "image_description": db_grievance.image_description,
+        "latitude": db_grievance.latitude,
+        "longitude": db_grievance.longitude,
+        "is_duplicate": False
+    }
+
+

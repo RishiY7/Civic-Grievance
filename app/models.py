@@ -19,7 +19,8 @@ class Grievance(Base):
     # Module additions
     image_description = Column(String, nullable=True) 
     citizen_email = Column(String, nullable=True) 
-    status = Column(String, default="Open")
+    status = Column(String, default="Pending")
+    proof_image_path = Column(String, nullable=True)
     
     # Duplicate Detection
     is_duplicate = Column(Boolean, default=False)

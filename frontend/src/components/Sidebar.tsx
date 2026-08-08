@@ -5,9 +5,10 @@ import { BilingualText } from './BilingualText';
 interface SidebarProps {
   userRole: string | null;
   userDept: string | null;
+  onNewDirectiveClick?: () => void;
 }
 
-export function Sidebar({ userRole, userDept }: SidebarProps) {
+export function Sidebar({ userRole, userDept, onNewDirectiveClick }: SidebarProps) {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -77,7 +78,10 @@ export function Sidebar({ userRole, userDept }: SidebarProps) {
       </nav>
       
       <div className="mt-auto p-4">
-        <button className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+        <button 
+          onClick={onNewDirectiveClick}
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+        >
           <Plus size={18} />
           <BilingualText text="New Directive" />
         </button>

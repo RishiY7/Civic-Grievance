@@ -45,7 +45,8 @@ def get_optional_user_token(token: str = Depends(OAuth2PasswordBearer(tokenUrl="
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         role: str = payload.get("role")
-        return {"username": username, "role": role}
+        department: str = payload.get("department")
+        return {"username": username, "role": role, "department": department}
     except jwt.PyJWTError:
         return None
 

@@ -137,14 +137,30 @@ export function IssueDetail() {
         <div className="space-y-6">
           <div className="glass-panel p-6 rounded-[2rem]">
             <h3 className="font-bold mb-4 flex items-center gap-2"><MapPin size={18} className="text-primary"/> <BilingualText text="Location Details" /></h3>
-            <div className="aspect-square bg-surface-container rounded-xl border border-outline-variant/30 flex items-center justify-center overflow-hidden relative">
-              {/* Fake mini map view for design purposes */}
+            <div className="aspect-square bg-surface-container rounded-xl border border-outline-variant/30 flex items-center justify-center overflow-hidden relative mb-4">
+              {/* Mini map preview */}
               <div className="absolute inset-0 opacity-50" style={{ backgroundImage: 'radial-gradient(#0058bc 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
               <div className="relative text-center">
                 <MapPin size={32} className="text-error mx-auto mb-2 drop-shadow-md" />
-                <p className="text-xs font-mono text-on-surface-variant">{grievance.latitude.toFixed(4)}, {grievance.longitude.toFixed(4)}</p>
+                <p className="text-xs font-mono text-on-surface-variant font-bold">
+                  {grievance.latitude != null && grievance.longitude != null 
+                    ? `${Number(grievance.latitude).toFixed(4)}, ${Number(grievance.longitude).toFixed(4)}`
+                    : 'Location N/A'}
+                </p>
               </div>
             </div>
+            
+            {grievance.latitude != null && grievance.longitude != null && (
+              <a
+                href={`https://maps.google.com/?q=${grievance.latitude},${grievance.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3 px-4 rounded-xl shadow hover:bg-primary/90 transition-all text-sm"
+              >
+                <MapPin size={16} />
+                <BilingualText text="Navigate in Google Maps" />
+              </a>
+            )}
           </div>
         </div>
       </div>

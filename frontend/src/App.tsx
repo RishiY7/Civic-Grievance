@@ -20,6 +20,7 @@ import { AdminAnalytics } from './pages/Admin/AdminAnalytics';
 import { AdminTable } from './pages/Admin/AdminTable';
 import { AdminUsers } from './pages/Admin/AdminUsers';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { NewDirectiveModal } from './components/NewDirectiveModal';
 
 const uiTranslations: Record<string, Record<string, string>> = {
   'en': {
@@ -95,6 +96,7 @@ export default function App() {
   const [currentLocation, setCurrentLocation] = useState({ lat: 12.9716, lng: 77.5946 });
   const [isLocating, setIsLocating] = useState(false);
   const [locationCaptured, setLocationCaptured] = useState(false);
+  const [isDirectiveModalOpen, setIsDirectiveModalOpen] = useState(false);
 
   useEffect(() => {
     fetchGrievances();
@@ -218,12 +220,39 @@ export default function App() {
     setFilteredGrievances(filtered);
   };
 
+  const handleDirectiveSuccess = (directive: any) => {
+    const updated = [directive, ...allGrievances];
+    setAllGrievances(updated);
+    if (userRole === 'department') {
+      applyFilters(updated, userDept || 'All', 'All');
+    } else {
+      setFilteredGrievances(updated);
+    }
+  };
+
+  let notifications: any[] = [];
+  if (userRole === 'citizen') {
+    notifications = allGrievances
+      .filter(g => g.status !== 'Pending' && !(g.original_text?.includes('[DIRECTIVE]') || g.visual_issue?.includes('[DIRECTIVE]')))
+      .slice(0, 5);
+  } else if (userRole === 'department') {
+    notifications = allGrievances
+      .filter(g => g.status === 'Pending' && (g.department === userDept || userDept === 'All'))
+      .slice(0, 5);
+  } else if (userRole === 'admin') {
+    notifications = allGrievances
+      .filter(g => g.status === 'Pending')
+      .slice(0, 5);
+  }
+
   return (
     <Layout 
       userRole={userRole} 
       userDept={userDept}
       onLoginClick={() => navigate('/auth')}
       onLogout={handleLogout}
+      onNewDirectiveClick={() => setIsDirectiveModalOpen(true)}
+      notifications={notifications}
     >
       <AnimatePresence mode="wait">
         <Routes key={location.pathname} location={location}>
@@ -233,7 +262,11 @@ export default function App() {
 
           {/* PROTECTED ROUTES */}
           <Route element={<ProtectedRoute allowedRoles={['citizen']} userRole={userRole} />}>
-            <Route path="/citizen" element={<CitizenPortal grievances={allGrievances} />}>
+            <Route path="/citizen" element={
+              <CitizenPortal 
+                grievances={allGrievances.filter(g => !(g.original_text?.includes('[DIRECTIVE]') || g.visual_issue?.includes('[DIRECTIVE]')))} 
+              />
+            }>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<CitizenDashboard />} />
               <Route path="report" element={
@@ -294,6 +327,14 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </AnimatePresence>
+
+      <NewDirectiveModal 
+        isOpen={isDirectiveModalOpen}
+        onClose={() => setIsDirectiveModalOpen(false)}
+        userDept={userDept}
+        userRole={userRole}
+        onSuccess={handleDirectiveSuccess}
+      />
     </Layout>
   );
 }

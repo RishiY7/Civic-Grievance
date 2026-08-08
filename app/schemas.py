@@ -4,7 +4,7 @@ from .models import UserRole
 
 # What FastAPI expects when creating a new user
 class UserCreate(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     full_name: str
     role: UserRole = UserRole.citizen
@@ -13,13 +13,24 @@ class UserCreate(BaseModel):
 # What FastAPI returns to the frontend (NEVER return the password)
 class UserResponse(BaseModel):
     id: int
-    email: EmailStr
+    email: str
     full_name: str
     role: UserRole
     department: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+class StatusUpdateRequest(BaseModel):
+    status: str
+
+class DirectiveCreate(BaseModel):
+    title: str
+    department: str
+    severity: str = "High"
+    description: str
+    latitude: float = 12.9716
+    longitude: float = 77.5946
 
 class GrievanceAnalysis(BaseModel):
     translated_text: str = Field(description="The English translation/transcription of the user's description, or visual description if none provided")

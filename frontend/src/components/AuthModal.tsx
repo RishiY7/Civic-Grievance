@@ -114,14 +114,16 @@ export function AuthModal({ onClose, onLoginSuccess }: AuthModalProps) {
           )}
           
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-1"><BilingualText text="Email" /></label>
+            <label className="block text-sm font-bold text-on-surface mb-1">
+              <BilingualText text={isLogin ? "Email or Username" : "Email"} />
+            </label>
             <input 
-              type="email" 
+              type={isLogin ? "text" : "email"} 
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
               className="w-full px-4 py-3 bg-surface-container-highest border border-outline-variant/30 rounded-xl focus:outline-none focus:border-primary text-on-surface"
-              placeholder="Enter email address"
+              placeholder={isLogin ? "Enter email or username (e.g. roads, admin)" : "Enter email address"}
             />
           </div>
           <div>

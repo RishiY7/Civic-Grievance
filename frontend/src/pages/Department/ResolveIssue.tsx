@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle, Camera, AlertTriangle, Send } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Camera, AlertTriangle, Send, MapPin, ExternalLink } from 'lucide-react';
 import { BilingualText } from '../../components/BilingualText';
 
 interface DeptContext {
@@ -27,22 +27,53 @@ export function ResolveIssue() {
     severity: 'High',
   };
 
-  const handleResolve = () => {
+  const handleResolve = async () => {
     if (!proofFile && grievance.status !== 'Resolved') {
       alert("Please upload a proof of work photo before marking as resolved.");
       return;
     }
     
     setIsSubmitting(true);
-    // Simulate network delay
-    setTimeout(() => {
+    try {
+      const formData = new FormData();
+      formData.append('status', 'Resolved');
+      if (proofFile) {
+        formData.append('proof_file', proofFile);
+      }
+
+      const res = await fetch(`http://localhost:8000/grievances/${grievanceId}/status`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        onUpdateStatus(grievanceId, 'Resolved', data.proof_image_path || (proofFile ? URL.createObjectURL(proofFile) : undefined));
+        navigate('/department/dashboard');
+      } else {
+        alert("Failed to update status on server.");
+      }
+    } catch (err) {
+      console.error(err);
+      // Fallback local update if offline
       onUpdateStatus(grievanceId, 'Resolved', proofFile ? URL.createObjectURL(proofFile) : undefined);
-      setIsSubmitting(false);
       navigate('/department/dashboard');
-    }, 1000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleStartWork = () => {
+  const handleStartWork = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('status', 'In-Progress');
+      await fetch(`http://localhost:8000/grievances/${grievanceId}/status`, {
+        method: 'POST',
+        body: formData
+      });
+    } catch (err) {
+      console.error("Failed to sync In-Progress to server", err);
+    }
     onUpdateStatus(grievanceId, 'In-Progress');
     navigate('/department/dashboard');
   };
@@ -85,7 +116,42 @@ export function ResolveIssue() {
                   <p className="font-bold text-primary">{grievance.visual_issue}</p>
                 </div>
               </div>
+
+              {grievance.image_path && (
+                <div>
+                  <p className="text-xs font-bold text-on-surface-variant uppercase mb-1"><BilingualText text="Citizen Uploaded Photo" /></p>
+                  <img 
+                    src={grievance.image_path.startsWith('http') ? grievance.image_path : `http://localhost:8000${grievance.image_path}`} 
+                    alt="Grievance evidence" 
+                    className="w-full h-48 object-cover rounded-2xl border border-outline-variant/30"
+                  />
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Location & Navigation Card */}
+          <div className="glass-panel p-6 rounded-[2rem]">
+            <h3 className="font-bold mb-3 flex items-center gap-2 text-on-surface">
+              <MapPin size={18} className="text-primary" /> <BilingualText text="Location & Navigation" />
+            </h3>
+            <p className="text-xs text-on-surface-variant mb-4 font-mono">
+              <BilingualText text="Coordinates:" /> {grievance.latitude != null && grievance.longitude != null 
+                ? `${Number(grievance.latitude).toFixed(5)}, ${Number(grievance.longitude).toFixed(5)}`
+                : 'Location not provided'}
+            </p>
+            {grievance.latitude != null && grievance.longitude != null && (
+              <a
+                href={`https://maps.google.com/?q=${grievance.latitude},${grievance.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-primary text-white font-bold py-3.5 px-4 rounded-xl shadow hover:bg-primary/90 transition-all text-sm group"
+              >
+                <MapPin size={16} />
+                <BilingualText text="Navigate in Google Maps" />
+                <ExternalLink size={14} className="opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </a>
+            )}
           </div>
         </div>
 
@@ -100,7 +166,23 @@ export function ResolveIssue() {
               <div className="text-center p-8 bg-secondary/10 border border-secondary/20 rounded-2xl">
                 <CheckCircle size={48} className="text-secondary mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-secondary mb-2"><BilingualText text="Issue Resolved" /></h3>
-                <p className="text-on-surface-variant"><BilingualText text="Citizen has been notified of the resolution." /></p>
+                <p className="text-on-surface-variant mb-4"><BilingualText text="Citizen has been notified of the resolution." /></p>
+                {(grievance.proof_image_path || (proofFile ? URL.createObjectURL(proofFile) : null)) && (
+                  <div className="mt-4 pt-4 border-t border-secondary/20">
+                    <p className="text-xs font-bold text-secondary uppercase mb-2"><BilingualText text="Proof of Work" /></p>
+                    <img 
+                      src={
+                        (grievance.proof_image_path && (grievance.proof_image_path.startsWith('http') || grievance.proof_image_path.startsWith('blob:'))) 
+                          ? grievance.proof_image_path 
+                          : grievance.proof_image_path 
+                            ? `http://localhost:8000${grievance.proof_image_path}`
+                            : proofFile ? URL.createObjectURL(proofFile) : ''
+                      } 
+                      alt="Proof of Work" 
+                      className="w-full h-48 object-cover rounded-xl border border-secondary/30 mx-auto"
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-6">
@@ -144,7 +226,7 @@ export function ResolveIssue() {
                     {isSubmitting ? <BilingualText text="Sending Notification..." /> : <><Send size={18} /> <BilingualText text="Mark as Resolved & Notify Citizen" /></>}
                   </motion.button>
                   
-                  {grievance.status === 'Pending' && (
+                  {(grievance.status === 'Pending' || grievance.status === 'Open' || !grievance.status) && (
                     <button 
                       onClick={handleStartWork}
                       className="w-full bg-surface-container-high text-on-surface px-6 py-4 rounded-xl font-bold hover:bg-surface-container transition-all"

@@ -9,6 +9,8 @@ interface LayoutProps {
   userDept: string | null;
   onLoginClick: () => void;
   onLogout: () => void;
+  onNewDirectiveClick?: () => void;
+  notifications?: any[];
 }
 
 export function Layout({ 
@@ -16,7 +18,9 @@ export function Layout({
   userRole, 
   userDept, 
   onLoginClick, 
-  onLogout
+  onLogout,
+  onNewDirectiveClick,
+  notifications
 }: LayoutProps) {
   return (
     <div className="bg-background font-body-md text-on-background min-h-screen overflow-x-hidden">
@@ -24,10 +28,15 @@ export function Layout({
         userRole={userRole} 
         onLoginClick={onLoginClick} 
         onLogout={onLogout} 
+        notifications={notifications}
       />
       
       <div className="flex pt-16 h-screen">
-        <Sidebar userRole={userRole} userDept={userDept} />
+        <Sidebar 
+          userRole={userRole} 
+          userDept={userDept} 
+          onNewDirectiveClick={onNewDirectiveClick}
+        />
         
         <main className="flex-1 overflow-y-auto p-4 md:p-8 relative">
           {/* Atmospheric Gradient Orbs */}

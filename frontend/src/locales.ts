@@ -20,7 +20,20 @@ export const translations: Record<string, Record<string, string>> = {
     "Upload any PDF or image to extract structured data and generate intelligent responses.": "Upload any PDF or image to extract structured data and generate intelligent responses.",
     "AI Insights": "AI Insights",
     "Assistant Live": "Assistant Live",
-    "Upload a form to get insights and required documents analysis.": "Upload a form to get insights and required documents analysis."
+    "Upload a form to get insights and required documents analysis.": "Upload a form to get insights and required documents analysis.",
+    "Dashboard": "Dashboard",
+    "Map": "Map",
+    "Logout": "Logout",
+    "Workflow Board": "Workflow Board",
+    "Manage and resolve active issues assigned to your department.": "Manage and resolve active issues assigned to your department.",
+    "Task Progress": "Task Progress",
+    "Pending Assignment": "Pending Assignment",
+    "Pending Assignment": "Pending Assignment",
+    "In Progress": "In Progress",
+    "Resolved": "Resolved",
+    "No issues": "No issues",
+    "Notifications": "Notifications",
+    "No new updates at this time.": "No new updates at this time."
   },
   "Hindi": {
     "Analyzing Document...": "Analyzing Document... / दस्तावेज़ की जाँच हो रही है...",
@@ -71,7 +84,20 @@ export const translations: Record<string, Record<string, string>> = {
     "Visual Issue:": "Visual Issue: / दृश्य समस्या:",
     "Original:": "Original: / मूल:",
     "Translated:": "Translated: / अनुवादित:",
-    "Submit Another": "Submit Another / एक और सबमिट करें"
+    "Submit Another": "Submit Another / एक और सबमिट करें",
+    "Dashboard": "Dashboard / डैशबोर्ड",
+    "Map": "Map / नक्शा",
+    "Logout": "Logout / लॉग आउट",
+    "Workflow Board": "Workflow Board / कार्यप्रवाह बोर्ड",
+    "Manage and resolve active issues assigned to your department.": "Manage and resolve active issues assigned to your department. / अपने विभाग को सौंपे गए सक्रिय मुद्दों को प्रबंधित और हल करें।",
+    "Task Progress": "Task Progress / कार्य की प्रगति",
+    "Pending Assignment": "Pending Assignment / असाइनमेंट लंबित",
+    "Pending Assignment": "Pending Assignment / असाइनमेंट लंबित",
+    "In Progress": "In Progress / प्रगति पर है",
+    "Resolved": "Resolved / हल किया गया",
+    "No issues": "No issues / कोई समस्या नहीं",
+    "Notifications": "Notifications / सूचनाएं",
+    "No new updates at this time.": "No new updates at this time. / इस समय कोई नया अपडेट नहीं है।"
   },
   "Kannada": {
     "Analyzing Document...": "Analyzing Document... / ದಾಖಲೆಯನ್ನು ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ...",
@@ -122,6 +148,19 @@ export const translations: Record<string, Record<string, string>> = {
     "Visual Issue:": "Visual Issue: / ದೃಶ್ಯ ಸಮಸ್ಯೆ:",
     "Original:": "Original: / ಮೂಲ:",
     "Translated:": "Translated: / ಅನುವಾದಿಸಲಾಗಿದೆ:",
-    "Submit Another": "Submit Another / ಮತ್ತೊಂದನ್ನು ಸಲ್ಲಿಸಿ"
+    "Submit Another": "Submit Another / ಮತ್ತೊಂದನ್ನು ಸಲ್ಲಿಸಿ",
+    "Dashboard": "Dashboard / ಡ್ಯಾಶ್ಬೋರ್ಡ್",
+    "Map": "Map / ನಕ್ಷೆ",
+    "Logout": "Logout / ಲಾಗ್ ಔಟ್",
+    "Workflow Board": "Workflow Board / ವರ್ಕ್ಫ್ಲೋ ಬೋರ್ಡ್",
+    "Manage and resolve active issues assigned to your department.": "Manage and resolve active issues assigned to your department. / ನಿಮ್ಮ ಇಲಾಖೆಗೆ ನಿಯೋಜಿಸಲಾದ ಸಕ್ರಿಯ ಸಮಸ್ಯೆಗಳನ್ನು ನಿರ್ವಹಿಸಿ ಮತ್ತು ಪರಿಹರಿಸಿ.",
+    "Task Progress": "Task Progress / ಕಾರ್ಯದ ಪ್ರಗತಿ",
+    "Pending Assignment": "Pending Assignment / ನಿಯೋಜನೆ ಬಾಕಿ",
+    "Pending Assignment": "Pending Assignment / ನಿಯೋಜನೆ ಬಾಕಿ",
+    "In Progress": "In Progress / ಪ್ರಗತಿಯಲ್ಲಿದೆ",
+    "Resolved": "Resolved / ಪರಿಹರಿಸಲಾಗಿದೆ",
+    "No issues": "No issues / ಯಾವುದೇ ಸಮಸ್ಯೆಗಳಿಲ್ಲ",
+    "Notifications": "Notifications / ಅಧಿಸೂಚನೆಗಳು",
+    "No new updates at this time.": "No new updates at this time. / ಈ ಸಮಯದಲ್ಲಿ ಯಾವುದೇ ಹೊಸ ನವೀಕರಣಗಳಿಲ್ಲ."
   }
 };

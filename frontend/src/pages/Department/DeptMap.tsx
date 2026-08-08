@@ -9,8 +9,8 @@ interface DeptContext {
 export function DeptMap() {
   const { grievances } = useOutletContext<DeptContext>();
 
-  // Filter out resolved issues for the active route planning map
-  const activeGrievances = grievances.filter(g => g.status !== 'Resolved');
+  // Filter out resolved issues and items without coordinates for the active route planning map
+  const activeGrievances = (grievances || []).filter(g => g.status !== 'Resolved' && g.latitude != null && g.longitude != null);
 
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col">

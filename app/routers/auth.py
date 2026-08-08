@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import User
+from ..models import User, UserRole
 from ..schemas import UserCreate
 from ..security import get_password_hash, verify_password, create_access_token
 
@@ -10,8 +10,8 @@ router = APIRouter(tags=["auth"])
 
 @router.post("/signup")
 async def signup_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == user_data.email).first():
-        raise HTTPException(status_code=400, detail="Email already registered")
+    if db.query(User).filter(User.email.ilike(user_data.email)).first():
+        raise HTTPException(status_code=400, detail="Email or username already registered")
     new_user = User(
         email=user_data.email, 
         hashed_password=get_password_hash(user_data.password),
@@ -26,8 +26,8 @@ async def signup_user(user_data: UserCreate, db: Session = Depends(get_db)):
 @router.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     
-    # 1. ONE clean query to find the user
-    user = db.query(User).filter(User.email == form_data.username).first()
+    # 1. Query user (case-insensitive username/email)
+    user = db.query(User).filter(User.email.ilike(form_data.username)).first()
 
     # 2. Verify existence and password
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -37,8 +37,14 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # 3. Bake the role and department right into the JWT Token!
-    role_value = "department" if user.role == UserRole.department_official else user.role.value
+    # 3. Determine role value for frontend routing & JWT
+    if user.role == UserRole.department_official or str(user.role).endswith("department_official"):
+        role_value = "department"
+    elif user.role == UserRole.admin or str(user.role).endswith("admin"):
+        role_value = "admin"
+    else:
+        role_value = "citizen"
+
     access_token = create_access_token(
         data={
             "sub": user.email, 

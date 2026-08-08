@@ -10,7 +10,7 @@ interface GlassCardProps {
   use3D?: boolean;
 }
 
-const cardVariants = {
+const cardVariants: any = {
   hidden: { opacity: 0, y: 20 },
   visible: (delay: number) => ({
     opacity: 1,
@@ -26,6 +26,7 @@ const cardVariants = {
 export function GlassCard({ children, className = '', delay = 0, onClick, use3D = true }: GlassCardProps) {
   const content = (
     <motion.div
+      variants={cardVariants}
       custom={delay}
       initial="hidden"
       animate="visible"

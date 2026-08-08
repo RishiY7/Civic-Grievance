@@ -130,8 +130,9 @@ export function MapComponent({ currentLocation, onLocationSelect, grievances }: 
                         href={`https://maps.google.com/?q=${g.latitude},${g.longitude}`} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="flex items-center justify-center w-full bg-white hover:bg-gray-50 text-gray-800 border border-gray-300 text-xs font-bold py-2 px-3 rounded shadow-sm transition-colors"
+                        className="flex items-center justify-center gap-1.5 w-full bg-[#0058bc] hover:bg-[#004799] text-white text-xs font-bold py-2.5 px-3 rounded-lg shadow-sm transition-colors text-center"
                       >
+                        <span>🧭</span>
                         <BilingualText text="Navigate in Google Maps" />
                       </a>
                     </div>

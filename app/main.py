@@ -5,8 +5,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import auth, grievances, chat
+from .seed import seed_default_users
 
 app = FastAPI(title="Civic Grievance API")
+
+@app.on_event("startup")
+def on_startup():
+    seed_default_users()
 
 # Add CORS middleware to allow the frontend to interact during development
 app.add_middleware(

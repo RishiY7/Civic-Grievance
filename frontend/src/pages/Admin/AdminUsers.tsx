@@ -3,20 +3,47 @@ import { motion } from 'framer-motion';
 import { UserPlus, Building, Shield, CheckCircle } from 'lucide-react';
 import { BilingualText } from '../../components/BilingualText';
 
-const DEPARTMENTS = ['Roads', 'Water', 'Garbage', 'Electricity', 'Traffic'];
+const DEPARTMENTS = ['Roads', 'Water', 'Sanitation', 'Electricity'];
 
 export function AdminUsers() {
   const [formData, setFormData] = useState({ name: '', email: '', department: 'Roads', password: '' });
   const [showSuccess, setShowSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API call to register user
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      setFormData({ name: '', email: '', department: 'Roads', password: '' });
-    }, 3000);
+    setErrorMsg('');
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:8000/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.name,
+          role: 'department_official',
+          department: formData.department
+        })
+      });
+
+      if (res.ok) {
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          setFormData({ name: '', email: '', department: 'Roads', password: '' });
+        }, 3000);
+      } else {
+        const err = await res.json();
+        setErrorMsg(err.detail || 'Failed to create department user');
+      }
+    } catch (err) {
+      setErrorMsg('Connection error. Is the server running?');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -109,8 +136,18 @@ export function AdminUsers() {
               />
             </div>
 
-            <button type="submit" className="w-full mt-4 bg-primary text-white py-4 rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
-              <BilingualText text="Register Department User" />
+            {errorMsg && (
+              <div className="text-error text-sm font-bold text-center bg-error/10 py-2.5 rounded-xl border border-error/20">
+                {errorMsg}
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full mt-4 bg-primary text-white py-4 rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50"
+            >
+              <BilingualText text={isLoading ? "Registering..." : "Register Department User"} />
             </button>
           </form>
         </motion.div>
